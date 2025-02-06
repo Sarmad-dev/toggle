@@ -8,13 +8,31 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  username  String   @unique
-  password  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  account   Account?
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  password      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  account       Account?
+  subscription  Subscription?
+  organization  Organization?    @relation(fields: [orgId], references: [id])
+  orgId         String?
+  projects      Project[]
+  timeEntries   TimeEntry[]
+  tasks         Task[]
+  clients       Client[]
+  teams         TeamMember[]
+  role          UserRole         @default(USER)
+  preferences   Json?            // For storing user preferences like theme, notifications, etc.
+  lastActive    DateTime?
+  stripeId      String?         @unique // For payment processing
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  MANAGER
 }
 
 model Account {
@@ -28,4 +46,191 @@ model Account {
   updatedAt         DateTime @updatedAt
 
   @@unique([provider, providerAccountId])
+}
+
+model Organization {
+  id          String    @id @default(cuid())
+  name        String
+  users       User[]
+  projects    Project[]
+  clients     Client[]
+  teams       Team[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  settings    Json?     // Organization-wide settings
+}
+
+model Subscription {
+  id              String            @id @default(cuid())
+  userId          String            @unique
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan            SubscriptionPlan
+  status          SubscriptionStatus
+  currentPeriodEnd DateTime
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  lemonSqueezyId  String?          @unique
+}
+
+enum SubscriptionPlan {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+  TRIAL
+}
+
+model Project {
+  id            String      @id @default(cuid())
+  name          String
+  description   String?
+  color         String?     // For project color coding
+  billable      Boolean     @default(true)
+  archived      Boolean     @default(false)
+  hourlyRate    Float?      // For billing calculations
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  orgId         String
+  organization  Organization @relation(fields: [orgId], references: [id])
+  clientId      String?
+  client        Client?     @relation(fields: [clientId], references: [id])
+  tasks         Task[]
+  timeEntries   TimeEntry[]
+  teams         Team[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  tags          Tag[]
+}
+
+model Client {
+  id            String    @id @default(cuid())
+  name          String
+  email         String?
+  address       String?
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  orgId         String
+  organization  Organization @relation(fields: [orgId], references: [id])
+  projects      Project[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Task {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  status      TaskStatus  @default(TODO)
+  priority    Priority    @default(MEDIUM)
+  deadline    DateTime?
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  projectId   String
+  project     Project     @relation(fields: [projectId], references: [id])
+  timeEntries TimeEntry[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  tags        Tag[]
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model TimeEntry {
+  id          String    @id @default(cuid())
+  description String?
+  startTime   DateTime
+  endTime     DateTime?
+  duration    Int?      // Duration in seconds
+  billable    Boolean   @default(true)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+  taskId      String?
+  task        Task?     @relation(fields: [taskId], references: [id])
+  invoiceId   String?
+  invoice     Invoice?  @relation(fields: [invoiceId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tags        Tag[]
+}
+
+model Team {
+  id            String      @id @default(cuid())
+  name          String
+  description   String?
+  orgId         String
+  organization  Organization @relation(fields: [orgId], references: [id])
+  members       TeamMember[]
+  projects      Project[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model TeamMember {
+  id        String    @id @default(cuid())
+  teamId    String
+  team      Team      @relation(fields: [teamId], references: [id])
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  role      TeamRole  @default(MEMBER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([teamId, userId])
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Tag {
+  id          String      @id @default(cuid())
+  name        String
+  color       String?
+  projects    Project[]
+  tasks       Task[]
+  timeEntries TimeEntry[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Invoice {
+  id          String      @id @default(cuid())
+  number      String      @unique
+  status      InvoiceStatus @default(DRAFT)
+  issueDate   DateTime
+  dueDate     DateTime
+  amount      Float
+  currency    String      @default("USD")
+  notes       String?
+  timeEntries TimeEntry[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
 }
