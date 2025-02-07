@@ -1,50 +1,119 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlayCircle, StopCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTimerStore } from "@/stores/use-timer-store";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useQuery } from "@tanstack/react-query";
+import { getProjects } from "@/lib/actions/projects";
+import { useUser } from "@/hooks/use-user";
 
 export function Timer() {
-  const [isRunning, setIsRunning] = useState(false);
-  const [time, setTime] = useState(0);
-  const [description, setDescription] = useState("");
+  const { user } = useUser();
+  const [open, setOpen] = useState(false);
+  const {
+    isRunning,
+    description,
+    duration,
+    selectedProjectId,
+    start,
+    stop,
+    setDescription,
+    setSelectedProject,
+    tick,
+  } = useTimerStore();
+
+  const { data: projects } = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => getProjects(user?.id),
+    enabled: !!user,
+  });
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isRunning) {
       interval = setInterval(() => {
-        setTime((prevTime) => prevTime + 1);
+        tick();
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, [isRunning, tick]);
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    return `${h.toString().padStart(2, "0")}:${m
+      .toString()
+      .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
+
+  const selectedProject = projects?.data?.find(
+    (project) => project.id === selectedProjectId
+  );
 
   return (
     <div className="space-y-4 rounded-lg border p-4 mb-4">
       <div className="flex items-center gap-2">
-        <Input
-          placeholder="What are you working on?"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="flex-1"
-        />
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Input
+              placeholder="What are you working on?"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="flex-1"
+            />
+          </PopoverTrigger>
+          <PopoverContent className="p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Search projects..." />
+              <CommandList>
+                <CommandEmpty>No projects found.</CommandEmpty>
+                <CommandGroup heading="Projects">
+                  {projects?.data?.map((project) => (
+                    <CommandItem
+                      key={project.id}
+                      onSelect={() => {
+                        setSelectedProject(project.id);
+                        setOpen(false);
+                      }}
+                    >
+                      <span
+                        className="mr-2 h-2 w-2 rounded-full"
+                        style={{ backgroundColor: project.color || "#000" }}
+                      />
+                      {project.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
         <Button
-          onClick={() => setIsRunning(!isRunning)}
+          onClick={() => (isRunning ? stop(user?.id) : start())}
           variant="outline"
           size="icon"
           className={cn(
             "h-10 w-10",
             isRunning && "bg-destructive hover:bg-destructive/90"
           )}
+          disabled={(!selectedProjectId && !isRunning) || !user}
         >
           {isRunning ? (
             <StopCircle className="h-4 w-4" />
@@ -53,7 +122,12 @@ export function Timer() {
           )}
         </Button>
       </div>
-      <div className="text-2xl font-mono text-center">{formatTime(time)}</div>
+      {selectedProject && (
+        <div className="text-sm text-muted-foreground">
+          Project: {selectedProject.name}
+        </div>
+      )}
+      <div className="text-2xl font-mono text-center">{formatTime(duration)}</div>
     </div>
   );
 } 

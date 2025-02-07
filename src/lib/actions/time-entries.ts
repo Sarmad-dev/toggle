@@ -10,7 +10,6 @@ export async function createTimeEntry(data: {
   duration: number;
   projectId: string;
   userId: string;
-  taskId?: string;
 }) {
   try {
     const timeEntry = await prisma.timeEntry.create({
@@ -19,15 +18,23 @@ export async function createTimeEntry(data: {
         startTime: data.startTime,
         endTime: data.endTime,
         duration: data.duration,
-        projectId: data.projectId,
-        userId: data.userId,
-        taskId: data.taskId,
+        project: {
+          connect: { id: data.projectId }
+        },
+        user: {
+          connect: { id: data.userId }
+        }
+      },
+      include: {
+        project: true,
       },
     });
-    revalidatePath("/dashboard");
+
+    revalidatePath("/dashboard/projects");
     return { success: true, data: timeEntry };
   } catch (error) {
-    return { success: false, error: "Failed to create time entry" };
+    console.error("Failed to create time entry:", error);
+    throw new Error("Failed to create time entry");
   }
 }
 

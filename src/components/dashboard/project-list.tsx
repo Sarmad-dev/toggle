@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { getProjects } from "@/lib/actions/projects";
 import {
   Table,
@@ -11,23 +10,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CircleDollarSign, Clock, Loader2 } from "lucide-react";
+import { CircleDollarSign, Clock, Loader2, PlayCircle, StopCircle } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useQuery } from "@tanstack/react-query";
-
-type Project = {
-  id: string;
-  name: string;
-  description: string | null;
-  billable: boolean;
-  hourlyRate: number | null;
-  client: { name: string } | null;
-  tasks: { id: string }[];
-  timeEntries: { duration: number }[];
-};
+import { Button } from "@/components/ui/button";
+import { useTimerStore } from "@/stores/use-timer-store";
+import { cn } from "@/lib/utils";
 
 export function ProjectList() {
   const { user } = useUser();
+  const { isRunning, selectedProjectId, start, stop } = useTimerStore();
 
   const {
     data: projects,
@@ -35,15 +27,19 @@ export function ProjectList() {
     isError,
   } = useQuery({
     queryKey: ["projects"],
-    queryFn: () => getProjects(user),
+    queryFn: () => getProjects(user?.id),
+    enabled: !!user,
   });
 
-  const getTotalHours = (timeEntries: { duration: number }[]) => {
+  const formatDuration = (timeEntries: { duration: number }[]) => {
     const totalSeconds = timeEntries.reduce(
       (acc, entry) => acc + entry.duration,
       0
     );
-    return (totalSeconds / 3600).toFixed(1);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    
+    return `${hours}h ${minutes}m`;
   };
 
   if (isLoading) {
@@ -67,6 +63,7 @@ export function ProjectList() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[100px]">Timer</TableHead>
             <TableHead>Project Name</TableHead>
             <TableHead>Client</TableHead>
             <TableHead>Tasks</TableHead>
@@ -77,13 +74,45 @@ export function ProjectList() {
         <TableBody>
           {projects?.data?.map((project) => (
             <TableRow key={project.id}>
-              <TableCell className="font-medium">{project.name}</TableCell>
+              <TableCell>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "h-8 w-8",
+                    isRunning && selectedProjectId === project.id && "text-destructive"
+                  )}
+                  onClick={() => {
+                    if (isRunning && selectedProjectId === project.id) {
+                      stop(user?.id);
+                    } else {
+                      start(project.id);
+                    }
+                  }}
+                  disabled={!user}
+                >
+                  {isRunning && selectedProjectId === project.id ? (
+                    <StopCircle className="h-4 w-4" />
+                  ) : (
+                    <PlayCircle className="h-4 w-4" />
+                  )}
+                </Button>
+              </TableCell>
+              <TableCell className="font-medium">
+                <div className="flex items-center">
+                  <span
+                    className="mr-2 h-2 w-2 rounded-full"
+                    style={{ backgroundColor: project.color || "#000" }}
+                  />
+                  {project.name}
+                </div>
+              </TableCell>
               <TableCell>{project.client?.name || "No Client"}</TableCell>
               <TableCell>{project.tasks.length} tasks</TableCell>
               <TableCell>
                 <div className="flex items-center">
                   <Clock className="mr-2 h-4 w-4" />
-                  {getTotalHours(project.timeEntries as { duration: number }[])}h
+                  {formatDuration(project.timeEntries as { duration: number }[])}
                 </div>
               </TableCell>
               <TableCell>
