@@ -38,18 +38,31 @@ export async function createTimeEntry(data: {
   }
 }
 
-export async function getTimeEntries(userId: string) {
+export async function getTimeEntries(userId: string | undefined) {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
+
   try {
-    const entries = await prisma.timeEntry.findMany({
+    const timeEntries = await prisma.timeEntry.findMany({
       where: { userId },
       include: {
-        project: true,
-        task: true,
+        project: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
       },
-      orderBy: { startTime: "desc" },
+      orderBy: {
+        startTime: 'desc',
+      },
     });
-    return { success: true, data: entries };
+
+    return { success: true, data: timeEntries };
   } catch (error) {
-    return { success: false, error: "Failed to fetch time entries" };
+    console.error("Failed to fetch time entries:", error);
+    throw new Error("Failed to fetch time entries");
   }
 } 

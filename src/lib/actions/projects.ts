@@ -2,16 +2,15 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { createProjectInvitation } from "./project-invitations";
 
 export async function createProject(data: {
   name: string;
   description?: string;
   color?: string;
   billable: boolean;
-  hourlyRate?: number;
-  userId: string;
-  orgId?: string;
-  clientId?: string;
+  managerId: string;
+  members: string[];
 }) {
   try {
     const project = await prisma.project.create({
@@ -20,16 +19,29 @@ export async function createProject(data: {
         description: data.description,
         color: data.color,
         billable: data.billable,
-        hourlyRate: data.hourlyRate,
-        user: {
-          connect: { id: data.userId }
-        },
+        managerId: data.managerId,
+        userId: data.managerId,
       },
     });
+
+    // Only send invitations if members array is not empty
+    if (data.members.length > 0) {
+      await Promise.all(
+        data.members.map((userId) =>
+          createProjectInvitation({
+            projectId: project.id,
+            userId,
+            invitedBy: data.managerId,
+          })
+        )
+      );
+    }
+
     revalidatePath("/dashboard/projects");
     return { success: true, data: project };
   } catch (error) {
-    throw new Error(error as string);
+    console.error("Project creation error:", error);
+    return { success: false, error: "Failed to create project" };
   }
 }
 

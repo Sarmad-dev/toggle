@@ -27,6 +27,11 @@ model User {
   preferences  Json? // For storing user preferences like theme, notifications, etc.
   lastActive   DateTime?
   stripeId     String?       @unique // For payment processing
+  managedProjects    Project[]          @relation("ManagedProjects")
+  projectMemberships ProjectMember[]
+  notifications      Notification[]
+  sentInvitations    ProjectInvitation[] @relation("SentInvitations")
+  receivedInvitations ProjectInvitation[] @relation("ReceivedInvitations")
 }
 
 enum UserRole {
@@ -86,23 +91,64 @@ enum SubscriptionStatus {
 }
 
 model Project {
-  id           String        @id @default(cuid())
-  name         String
-  description  String?
-  color        String? // For project color coding
-  billable     Boolean       @default(true)
-  archived     Boolean       @default(false)
-  hourlyRate   Float? // For billing calculations
-  userId       String
-  user         User          @relation(fields: [userId], references: [id])
-  clientId     String?
-  client       Client?       @relation(fields: [clientId], references: [id])
-  tasks        Task[]
-  timeEntries  TimeEntry[]
-  teams        Team[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  tags         Tag[]
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  color       String?
+  billable    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  client      Client?       @relation(fields: [clientId], references: [id])
+  clientId    String?
+  tasks       Task[]
+  timeEntries TimeEntry[]
+  members     ProjectMember[]
+  invitations ProjectInvitation[]
+  managerId   String        // The user who manages this project
+  manager     User          @relation("ManagedProjects", fields: [managerId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+  userId      String
+  teams       Team[]
+  tags        Tag[]
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  role      Role     @default(MEMBER)
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  @@unique([projectId, userId])
+}
+
+model ProjectInvitation {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  userId      String
+  user        User     @relation("ReceivedInvitations", fields: [userId], references: [id])
+  invitedById String
+  invitedBy   User     @relation("SentInvitations", fields: [invitedById], references: [id])
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([projectId, userId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  message   String
+  read      Boolean          @default(false)
+  user      User            @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime        @default(now())
+  data      Json?           // For storing invitation/project related data
 }
 
 model Client {
@@ -230,4 +276,23 @@ enum InvoiceStatus {
   PAID
   OVERDUE
   CANCELLED
+}
+
+enum Role {
+  MANAGER
+  MEMBER
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum NotificationType {
+  PROJECT_INVITATION
+  INVITATION_ACCEPTED
+  INVITATION_DECLINED
+  TASK_ASSIGNED
+  // Add other notification types as needed
 }

@@ -30,6 +30,8 @@ import { useUser } from "@/hooks/use-user";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { useUsers } from "@/hooks/use-users";
 
 const predefinedColors = [
   { name: "Red", value: "#ef4444" },
@@ -40,64 +42,54 @@ const predefinedColors = [
   { name: "Pink", value: "#ec4899" },
 ];
 
-const formSchema = z.object({
-  name: z.string().min(2, "Project name must be at least 2 characters"),
+const projectSchema = z.object({
+  name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
+  color: z.string().optional(),
   billable: z.boolean().default(false),
-  hourlyRate: z.string().optional(),
-  color: z.string().min(1, "Please select a color"),
+  members: z.array(z.string()).default([]),
 });
 
 export function CreateProject() {
   const [open, setOpen] = useState(false);
   const { user } = useUser();
+  const { data: users, isLoading, error } = useUsers();
   const [customColor, setCustomColor] = useState(false);
   const queryClient = useQueryClient();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof projectSchema>>({
+    resolver: zodResolver(projectSchema),
     defaultValues: {
       name: "",
       description: "",
       billable: false,
-      hourlyRate: "",
       color: predefinedColors[0].value,
+      members: [],
     },
   });
 
   const { mutateAsync } = useMutation({
     mutationKey: ["create-project"],
-    mutationFn: (values: z.infer<typeof formSchema>) => createProject({
-      ...values,
-      hourlyRate: values.hourlyRate ? parseFloat(values.hourlyRate) : undefined,
-      userId: user.id,
-      orgId: user.orgId ?? undefined,
-      color: values.color,
-    }),
+    mutationFn: (values: z.infer<typeof projectSchema>) =>
+      createProject({
+        ...values,
+        managerId: user!.id,
+        members: values.members || [],
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-    }
-  })
+    },
+  });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof projectSchema>) {
     try {
-      if (!user) {
-        toast.error("You must be logged in to create a project");
-        return;
-      }
+      await mutateAsync(values);
 
-      const result = await mutateAsync(values)
-      
-      if (result.success) {
-        toast.success("Project created successfully");
-        setOpen(false);
-        form.reset();
-      } else {
-        toast.error("Failed to create project");
-      }
+      toast.success("Project created successfully");
+      setOpen(false);
+      form.reset();
     } catch (error) {
-      // toast.error("Something went wrong");
-      throw new Error(error as string)
+      toast.error("Failed to create project");
     }
   }
 
@@ -130,7 +122,7 @@ export function CreateProject() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -138,7 +130,10 @@ export function CreateProject() {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Enter project description" {...field} />
+                    <Textarea
+                      placeholder="Enter project description"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -175,7 +170,10 @@ export function CreateProject() {
                           className="grid grid-cols-3 gap-2"
                         >
                           {predefinedColors.map((color) => (
-                            <div key={color.value} className="flex items-center space-x-2">
+                            <div
+                              key={color.value}
+                              className="flex items-center space-x-2"
+                            >
                               <RadioGroupItem
                                 value={color.value}
                                 id={color.value}
@@ -192,7 +190,9 @@ export function CreateProject() {
                                   className="h-4 w-4 rounded-full"
                                   style={{ backgroundColor: color.value }}
                                 />
-                                <span className="ml-2 text-sm">{color.name}</span>
+                                <span className="ml-2 text-sm">
+                                  {color.name}
+                                </span>
                               </label>
                             </div>
                           ))}
@@ -222,23 +222,37 @@ export function CreateProject() {
                 </FormItem>
               )}
             />
-            
-            {form.watch("billable") && (
-              <FormField
-                control={form.control}
-                name="hourlyRate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Hourly Rate ($)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="0.00" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            
+
+            <FormField
+              control={form.control}
+              name="members"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Invite Members</FormLabel>
+                  <FormControl>
+                    {isLoading ? (
+                      <div>Loading users...</div>
+                    ) : error ? (
+                      <div>Error loading users</div>
+                    ) : (
+                      <MultiSelect
+                        options={
+                          users?.map((user: { id: string; username: string; email: string }) => ({
+                            label: user.username || '',
+                            value: user.id,
+                            email: user.email,
+                          })) ?? []
+                        }
+                        selected={field.value ?? []}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
@@ -254,4 +268,4 @@ export function CreateProject() {
       </DialogContent>
     </Dialog>
   );
-} 
+}
