@@ -1,7 +1,8 @@
 
-import { supabaseServer } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
+  const supabaseServer = await createClient();
   const { data: { session } } = await supabaseServer.auth.getSession()
   return (
     <div>
