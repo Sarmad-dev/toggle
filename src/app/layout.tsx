@@ -28,19 +28,23 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased px-4`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased relative`}
       >
-        <QueryProvider>
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-          {children}
-          <Toaster richColors />
-        </ThemeProvider>
-        </QueryProvider>
+        <div className="flex min-h-screen flex-col">
+          <QueryProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <main className="flex-1 px-4">
+                {children}
+              </main>
+              <Toaster richColors />
+            </ThemeProvider>
+          </QueryProvider>
+        </div>
       </body>
     </html>
   );
