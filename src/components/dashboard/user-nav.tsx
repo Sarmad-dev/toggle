@@ -18,20 +18,23 @@ import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/use-user";
 import { toast } from "sonner";
 import { NotificationDropdown } from "@/components/notifications/notification-dropdown";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function UserNav() {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const { user } = useUser();
   const supabase = createClient();
+  const queryClient = useQueryClient();
 
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
+      queryClient.clear();
       router.push("/auth/sign-in");
       toast.success("Logged out successfully");
     } catch (error) {
-      toast.error("Error logging out");
+      toast.error("Failed to log out");
     }
   };
 
