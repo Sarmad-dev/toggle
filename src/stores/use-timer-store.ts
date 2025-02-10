@@ -6,9 +6,12 @@ interface TimerState {
   startTime: Date | null;
   description: string;
   selectedProjectId: string | null;
+  selectedTaskId: string | null;
   duration: number;
   start: (projectId?: string) => void;
+  startTask: (taskId: string) => void;
   stop: (userId: string) => Promise<void>;
+  stopTask: () => void;
   reset: () => void;
   setDescription: (description: string) => void;
   setSelectedProject: (projectId: string) => void;
@@ -20,6 +23,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   startTime: null,
   description: "",
   selectedProjectId: null,
+  selectedTaskId: null,
   duration: 0,
 
   start: (projectId?: string) => {
@@ -28,6 +32,8 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     }
     set({ isRunning: true, startTime: new Date(), duration: 0 });
   },
+
+  startTask: (taskId: string) => set({ isRunning: true, selectedTaskId: taskId }),
 
   stop: async (userId: string) => {
     const { startTime, description, selectedProjectId, duration } = get();
@@ -50,6 +56,8 @@ export const useTimerStore = create<TimerState>((set, get) => ({
       }
     }
   },
+
+  stopTask: () => set({ isRunning: false, selectedTaskId: null }),
 
   reset: () => {
     set({

@@ -1,16 +1,22 @@
 "use client";
 
-import { getUsers } from "@/lib/actions/user";
 import { useQuery } from "@tanstack/react-query";
 
+interface User {
+  id: string;
+  username: string;
+  email: string;
+}
+
 export function useUsers() {
-  const { data, isLoading, error } = useQuery({
+  return useQuery<{ success: boolean; data: User[] }>({
     queryKey: ["users"],
     queryFn: async () => {
-      const users = await getUsers();
-      return users;
+      const response = await fetch("/api/users");
+      if (!response.ok) {
+        throw new Error("Failed to fetch users");
+      }
+      return response.json();
     },
   });
-
-  return { data, isLoading, error };
 } 

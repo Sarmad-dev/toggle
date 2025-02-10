@@ -2,7 +2,7 @@
 
 import { getProjects } from "@/lib/actions/projects";
 import { Badge } from "@/components/ui/badge";
-import { CircleDollarSign, Clock, Loader2, PlayCircle, StopCircle } from "lucide-react";
+import { CircleDollarSign, Clock, Loader2, PlayCircle, StopCircle, MoreVertical } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,14 @@ import { useTimerStore } from "@/stores/use-timer-store";
 import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface Project {
   id: string;
@@ -18,20 +26,20 @@ interface Project {
   client: { 
     id: string;
     name: string;
-    // ... other client fields
   } | null;
-  tasks: any[];
-  timeEntries: {
-    id: string;
-    duration: number | null;
-    // ... other timeEntry fields
-  }[];
+  _count: {
+    tasks: number;
+    timeEntries: number;
+    members: number;
+  };
+  userId: string;
   billable: boolean;
 }
 
 export function ProjectList() {
   const { user } = useUser();
   const { isRunning, selectedProjectId, start, stop } = useTimerStore();
+  const router = useRouter();
 
   const {
     data: projects,
@@ -43,11 +51,7 @@ export function ProjectList() {
     enabled: !!user,
   });
 
-  const formatDuration = (timeEntries: { duration: number | null }[]) => {
-    const totalSeconds = timeEntries.reduce(
-      (acc, entry) => acc + (entry.duration || 0),
-      0
-    );
+  const formatDuration = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     return `${hours}h ${minutes}m`;
@@ -108,7 +112,7 @@ export function ProjectList() {
     {
       accessorKey: "tasks",
       header: "Tasks",
-      cell: ({ row }) => `${row.original.tasks.length} tasks`,
+      cell: ({ row }) => `${row.original._count.tasks} tasks`,
     },
     {
       accessorKey: "timeEntries",
@@ -116,7 +120,7 @@ export function ProjectList() {
       cell: ({ row }) => (
         <div className="flex items-center">
           <Clock className="mr-2 h-4 w-4" />
-          {formatDuration(row.original.timeEntries)}
+          {formatDuration(row.original._count.timeEntries)}
         </div>
       ),
     },
@@ -130,6 +134,26 @@ export function ProjectList() {
             Billable
           </Badge>
         ),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const project = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href={`/dashboard/projects/${project.id}`}>View Project</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
   ];
 

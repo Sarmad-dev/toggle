@@ -17,7 +17,7 @@ import { useUser } from "@/hooks/use-user";
 export function NotificationDropdown() {
   const { user } = useUser();
   const queryClient = useQueryClient();
-  const socket = useSocket();
+  const { socket } = useSocket();
 
   const { data: notifications } = useQuery({
     queryKey: ["notifications"],

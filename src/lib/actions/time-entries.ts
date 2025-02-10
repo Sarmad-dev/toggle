@@ -45,7 +45,20 @@ export async function getTimeEntries(userId: string | undefined) {
 
   try {
     const timeEntries = await prisma.timeEntry.findMany({
-      where: { userId },
+      where: {
+        OR: [
+          { userId: userId }, // User's own time entries
+          {
+            project: {
+              members: {
+                some: {
+                  userId: userId
+                }
+              }
+            }
+          } // Time entries from projects where user is a member
+        ]
+      },
       include: {
         project: {
           select: {
@@ -54,6 +67,11 @@ export async function getTimeEntries(userId: string | undefined) {
             color: true,
           },
         },
+        user: {
+          select: {
+            username: true,
+          }
+        }
       },
       orderBy: {
         startTime: 'desc',

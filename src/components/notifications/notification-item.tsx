@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { handleProjectInvitation } from "@/lib/actions/project-invitations";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 interface NotificationItemProps {
@@ -16,10 +18,12 @@ interface NotificationItemProps {
 }
 
 export function NotificationItem({ notification, onAction }: NotificationItemProps) {
+  const [loading, setLoading] = useState(false)
   const handleInvitation = async (status: "ACCEPTED" | "DECLINED") => {
     try {
+      setLoading(true)
       const result = await handleProjectInvitation({
-        invitationId: notification.data.invitationId,
+        invitationId: notification.data,
         status,
         notificationId: notification.id,
       });
@@ -32,8 +36,12 @@ export function NotificationItem({ notification, onAction }: NotificationItemPro
         );
         onAction();
       }
+      setLoading(false)
     } catch (error) {
+      console.log(error)
       toast.error("Failed to handle invitation");
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -43,13 +51,14 @@ export function NotificationItem({ notification, onAction }: NotificationItemPro
       <div className="text-sm text-muted-foreground">{notification.message}</div>
       {notification.type === "PROJECT_INVITATION" && (
         <div className="flex gap-2 mt-2">
-          <Button size="sm" onClick={() => handleInvitation("ACCEPTED")}>
-            Accept
+          <Button size="sm" onClick={() => handleInvitation("ACCEPTED")} disabled={loading}>
+            {loading ? <Loader2 className="animate-spin" /> : "Accept"}
           </Button>
           <Button
             size="sm"
             variant="outline"
             onClick={() => handleInvitation("DECLINED")}
+            disabled={loading}
           >
             Decline
           </Button>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlayCircle, StopCircle } from "lucide-react";
+import { Play, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTimerStore } from "@/stores/use-timer-store";
 import {
@@ -107,18 +107,19 @@ export function Timer() {
         </Popover>
         <Button
           onClick={() => (isRunning ? stop(user?.id) : start())}
-          variant="outline"
+          variant={isRunning ? "destructive" : "default"}
           size="icon"
           className={cn(
-            "h-10 w-10",
-            isRunning && "bg-destructive hover:bg-destructive/90"
+            "h-10 w-10 rounded-full shadow-lg transition-all duration-200",
+            isRunning && "bg-destructive hover:bg-destructive/90",
+            !isRunning && "bg-primary hover:bg-primary/90"
           )}
           disabled={(!selectedProjectId && !isRunning) || !user}
         >
           {isRunning ? (
-            <StopCircle className="h-4 w-4" />
+            <Square className="h-5 w-5 text-white" strokeWidth={2.5} />
           ) : (
-            <PlayCircle className="h-4 w-4" />
+            <Play className="h-5 w-5 text-white ml-0.5" strokeWidth={2.5} />
           )}
         </Button>
       </div>

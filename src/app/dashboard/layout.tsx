@@ -19,15 +19,19 @@ export default function DashboardLayout({
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={cn(
+      "relative min-h-screen overflow-hidden",
+      theme === "dark" ? "bg-gradient-dark" : "bg-gradient-light"
+    )}>
       <Header />
-      <div className="flex-1 flex">
-        {/* Sidebar */}
+      <div className="flex overflow-hidden pt-14">
+        {/* Sidebar - Made sticky */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-64 flex-col",
+            "sticky left-0 h-[calc(100vh-3.5rem)]",
+            "w-64 flex-shrink-0",
             "transform transition-transform duration-200 ease-in-out",
-            "bg-background border-r",
+            "bg-background border-r z-50",
             !sidebarOpen && "-translate-x-full",
             "lg:relative lg:translate-x-0"
           )}
@@ -49,12 +53,12 @@ export default function DashboardLayout({
           </div>
         </aside>
 
-        {/* Main content */}
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <main className="flex-1 overflow-y-auto bg-muted/10">
-            <div className="container mx-auto py-6 px-6">{children}</div>
-          </main>
-        </div>
+        {/* Main content - Scrollable */}
+        <main className="flex-1 overflow-auto">
+          <div className="container mx-auto py-6 px-6">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

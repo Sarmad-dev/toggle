@@ -16,11 +16,6 @@ export async function createNotification(data: {
       data,
     });
 
-    // Emit socket event using global io instance
-    if (global.socketIO) {
-      global.socketIO.to(`user-${data.userId}`).emit("new-notification");
-    }
-
     return { success: true, data: notification };
   } catch (error) {
     console.error("Failed to create notification:", error);
