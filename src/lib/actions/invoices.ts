@@ -2,40 +2,43 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { formatISO } from "date-fns";
 
 export async function createInvoice(data: {
-  userId: string;
-  timeEntries: string[];
-  dueDate: Date;
+  clientName: string;
+  clientEmail?: string;
+  address: string;
   amount: number;
-  currency: string;
-  notes?: string;
+  dueDate: Date;
+  timeEntryIds: string[];
+  userId: string;
 }) {
   try {
+    // Generate invoice number (e.g., INV-2024-001)
+    const invoiceCount = await prisma.invoice.count();
+    const invoiceNumber = `INV-${new Date().getFullYear()}-${String(invoiceCount + 1).padStart(3, '0')}`;
+
     const invoice = await prisma.invoice.create({
       data: {
-        number: `INV-${Date.now()}`, // You might want a more sophisticated number generation
-        status: "DRAFT",
-        issueDate: new Date(),
-        dueDate: data.dueDate,
+        number: invoiceNumber,
+        clientName: data.clientName,
+        clientEmail: data.clientEmail,
+        address: data.address,
         amount: data.amount,
-        currency: data.currency,
-        notes: data.notes,
+        dueDate: data.dueDate,
+        userId: data.userId,
         timeEntries: {
-          connect: data.timeEntries.map(id => ({ id })),
+          connect: data.timeEntryIds.map(id => ({ id })),
         },
+      },
+      include: {
+        timeEntries: true,
       },
     });
 
-    // Update time entries to link them to this invoice
-    await prisma.timeEntry.updateMany({
-      where: { id: { in: data.timeEntries } },
-      data: { invoiceId: invoice.id },
-    });
-
-    revalidatePath("/dashboard/invoices");
     return { success: true, data: invoice };
   } catch (error) {
+    console.error("Error creating invoice:", error);
     return { success: false, error: "Failed to create invoice" };
   }
 }
@@ -43,18 +46,59 @@ export async function createInvoice(data: {
 export async function getInvoices(userId: string) {
   try {
     const invoices = await prisma.invoice.findMany({
+      where: { userId },
       include: {
-        timeEntries: {
-          include: {
-            project: true,
-          },
-        },
+        timeEntries: true,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
+
     return { success: true, data: invoices };
   } catch (error) {
+    console.error("Error fetching invoices:", error);
     return { success: false, error: "Failed to fetch invoices" };
+  }
+}
+
+export async function getInvoice(id: string) {
+  try {
+    const invoice = await prisma.invoice.findUnique({
+      where: { id },
+      include: {
+        timeEntries: true,
+      },
+    });
+
+    return { success: true, data: invoice };
+  } catch (error) {
+    console.error("Error fetching invoice:", error);
+    return { success: false, error: "Failed to fetch invoice" };
+  }
+}
+
+export async function updateInvoice(id: string, data: {
+  clientName?: string;
+  clientEmail?: string;
+  address?: string;
+  amount?: number;
+  dueDate?: Date;
+  status?: 'PENDING' | 'PAID' | 'OVERDUE';
+}) {
+  try {
+    const invoice = await prisma.invoice.update({
+      where: { id },
+      data,
+      include: {
+        timeEntries: true,
+      },
+    });
+
+    return { success: true, data: invoice };
+  } catch (error) {
+    console.error("Error updating invoice:", error);
+    return { success: false, error: "Failed to update invoice" };
   }
 }
 
@@ -64,7 +108,6 @@ export async function updateInvoiceStatus(id: string, status: "DRAFT" | "SENT" |
       where: { id },
       data: { status },
     });
-    revalidatePath("/dashboard/invoices");
     return { success: true, data: invoice };
   } catch (error) {
     return { success: false, error: "Failed to update invoice status" };

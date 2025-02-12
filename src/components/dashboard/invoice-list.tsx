@@ -1,5 +1,6 @@
 "use client";
 
+import { format } from "date-fns";
 import {
   Table,
   TableBody,
@@ -8,70 +9,100 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { FileText, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Download, Edit, CheckCircle2 } from "lucide-react";
+import { EditInvoice } from "./edit-invoice";
+import { useState } from "react";
+import { downloadInvoicePDF } from "@/lib/pdf-generator";
+import { updateInvoiceStatus } from "@/lib/actions/invoices";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
 
-type Invoice = {
-  id: string;
-  number: string;
-  status: "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED";
-  issueDate: string;
-  dueDate: string;
-  amount: number;
-  currency: string;
-};
+interface InvoiceListProps {
+  invoices: any[];
+}
 
-const statusColors = {
-  DRAFT: "secondary",
-  SENT: "blue",
-  PAID: "green",
-  OVERDUE: "destructive",
-  CANCELLED: "gray",
-} as const;
+export function InvoiceList({ invoices }: InvoiceListProps) {
+  const [editingInvoice, setEditingInvoice] = useState<any>(null);
 
-export function InvoiceList() {
-  // TODO: Replace with actual data fetching
-  const invoices: Invoice[] = [];
+  const handleStatusChange = async (invoiceId: string, status: string) => {
+    try {
+      await updateInvoiceStatus(invoiceId, status as any);
+      toast.success("Invoice status updated");
+    } catch (error) {
+      toast.error("Failed to update invoice status");
+    }
+  };
 
   return (
-    <div className="rounded-md border">
+    <>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Invoice Number</TableHead>
-            <TableHead>Issue Date</TableHead>
-            <TableHead>Due Date</TableHead>
+            <TableHead>Client</TableHead>
             <TableHead>Amount</TableHead>
+            <TableHead>Due Date</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {invoices.map((invoice) => (
             <TableRow key={invoice.id}>
+              <TableCell>{invoice.number}</TableCell>
+              <TableCell>{invoice.clientName}</TableCell>
+              <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+              <TableCell>{format(new Date(invoice.dueDate), 'PP')}</TableCell>
               <TableCell>
-                <div className="flex items-center">
-                  <FileText className="mr-2 h-4 w-4" />
-                  {invoice.number}
-                </div>
+                <Select
+                  defaultValue={invoice.status}
+                  onValueChange={(value) => handleStatusChange(invoice.id, value)}
+                >
+                  <SelectTrigger className="w-[130px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DRAFT">Draft</SelectItem>
+                    <SelectItem value="SENT">Sent</SelectItem>
+                    <SelectItem value="PAID">Paid</SelectItem>
+                    <SelectItem value="OVERDUE">Overdue</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
               </TableCell>
-              <TableCell>{format(new Date(invoice.issueDate), "PP")}</TableCell>
-              <TableCell>{format(new Date(invoice.dueDate), "PP")}</TableCell>
-              <TableCell>
-                <div className="flex items-center">
-                  <DollarSign className="mr-1 h-4 w-4" />
-                  {invoice.amount.toFixed(2)} {invoice.currency}
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge variant={statusColors[invoice.status]}>
-                  {invoice.status}
-                </Badge>
+              <TableCell className="space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadInvoicePDF(invoice)}
+                >
+                  <Download className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingInvoice(invoice)}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-    </div>
+
+      <EditInvoice
+        invoice={editingInvoice}
+        open={!!editingInvoice}
+        onOpenChange={(open) => !open && setEditingInvoice(null)}
+      />
+    </>
   );
 } 

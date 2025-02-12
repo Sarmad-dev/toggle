@@ -11,8 +11,10 @@ export async function createProject(data: {
   description?: string;
   color?: string;
   billable: boolean;
+  billableAmount?: number;
   managerId: string;
   members: string[];
+  teamId?: string;
 }) {
   try {
     const project = await prisma.project.create({
@@ -21,8 +23,10 @@ export async function createProject(data: {
         description: data.description,
         color: data.color,
         billable: data.billable,
+        billableAmount: data.billableAmount,
         managerId: data.managerId,
         userId: data.managerId,
+        teamId: data.teamId,
       },
     });
 
@@ -52,18 +56,19 @@ export async function getProjects(userId: string) {
     const projects = await prisma.project.findMany({
       where: {
         OR: [
-          { userId: userId }, // Projects user owns
+          { userId: userId },
           {
             members: {
               some: {
                 userId: userId
               }
             }
-          } // Projects where user is a member
+          }
         ]
       },
       include: {
         client: true,
+        team: true,
         _count: {
           select: {
             tasks: true,
@@ -83,35 +88,31 @@ export async function getProjects(userId: string) {
   }
 }
 
-export async function getProject(id: string) {
+export async function getProject(projectId: string) {
   try {
     const project = await prisma.project.findUnique({
-      where: { id },
+      where: { id: projectId },
       include: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
         members: {
           include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-                image: true
-              }
-            }
-          }
+            user: true,
+          },
         },
         _count: {
           select: {
-            timeEntries: true,
             tasks: true,
             members: true,
+            timeEntries: true,
           },
         },
       },
     });
-
-    if (!project) {
-      return { success: false, error: "Project not found" };
-    }
 
     return { success: true, data: project };
   } catch (error) {
@@ -246,5 +247,41 @@ export async function acceptProjectInvitation(invitationId: string) {
   } catch (error) {
     console.error("Failed to accept invitation:", error);
     return { success: false, error: "Failed to accept invitation" };
+  }
+}
+
+export async function updateProject(id: string, data: {
+  name?: string;
+  description?: string;
+  teamId?: string | null;
+  billable?: boolean;
+  billableAmount?: number;
+  color?: string;
+}) {
+  try {
+    const project = await prisma.project.update({
+      where: { id },
+      data: {
+        name: data.name,
+        description: data.description,
+        teamId: data.teamId,
+        billable: data.billable,
+        billableAmount: data.billableAmount,
+        color: data.color,
+      },
+      include: {
+        team: true,
+        members: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    return { success: true, data: project };
+  } catch (error) {
+    console.error("Error updating project:", error);
+    return { success: false, error: "Failed to update project" };
   }
 } 

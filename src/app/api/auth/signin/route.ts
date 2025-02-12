@@ -10,6 +10,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { email, password } = signInSchema.parse(body);
 
+    console.log("EMAIL: ", email)
+    console.log("PASSWORD: ", password)
+
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -33,8 +36,6 @@ export async function POST(req: Request) {
       email,
       password,
     });
-
-    console.log("AUTH DATA: ", authData)
 
     if (authError) {
       return NextResponse.json(

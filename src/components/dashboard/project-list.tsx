@@ -34,6 +34,10 @@ interface Project {
   };
   userId: string;
   billable: boolean;
+  team: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export function ProjectList() {
@@ -99,8 +103,25 @@ export function ProjectList() {
               className="mr-2 h-2 w-2 rounded-full"
               style={{ backgroundColor: project.color || "#000" }}
             />
-            {project.name}
+            <Link 
+              href={`/dashboard/projects/${project.id}`}
+              className="font-medium hover:underline"
+            >
+              {project.name}
+            </Link>
           </div>
+        );
+      },
+    },
+    {
+      accessorKey: "team",
+      header: "Team",
+      cell: ({ row }) => {
+        const team = row.original.team;
+        return team ? (
+          <Badge variant="outline">{team.name}</Badge>
+        ) : (
+          <span className="text-muted-foreground">No team assigned</span>
         );
       },
     },

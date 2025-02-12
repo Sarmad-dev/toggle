@@ -22,7 +22,7 @@ export default function DashboardLayout({
     <div className={cn(
       "relative min-h-screen overflow-hidden",
       theme === "dark" ? "bg-gradient-dark" : "bg-gradient-light"
-    )}>
+    )} suppressHydrationWarning>
       <Header />
       <div className="flex overflow-hidden pt-14">
         {/* Sidebar - Made sticky */}

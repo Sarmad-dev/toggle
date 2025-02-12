@@ -69,8 +69,14 @@ export function NotificationDropdown() {
           notifications?.data?.map((notification) => (
             <NotificationItem
               key={notification.id}
-              notification={notification}
-              onAction={handleAction}
+              id={notification.id}
+              type={notification.type}
+              title={notification.title}
+              message={notification.message}
+              read={notification.read}
+              data={notification.data}
+              userId={notification.userId}
+              createdAt={notification.createdAt}
             />
           ))
         )}

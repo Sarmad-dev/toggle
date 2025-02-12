@@ -26,13 +26,15 @@ export interface Option {
 }
 
 interface MultiSelectProps {
+  placeholder?: string;
   options: Option[];
   selected: string[];
-  onChange: (values: string[]) => void;
+  onChange: (value: string[]) => void;
   className?: string;
 }
 
 export function MultiSelect({
+  placeholder,
   options = [],
   selected = [],
   onChange = () => {},
@@ -133,37 +135,31 @@ export function MultiSelect({
             aria-label="Search users"
           />
           <CommandList>
-            <CommandEmpty>No user found</CommandEmpty>
+            <CommandEmpty>No options found</CommandEmpty>
             <CommandGroup className="max-h-[200px] overflow-auto">
-              {filteredOptions.length === 0 ? (
-                <div className="py-6 text-center text-sm text-muted-foreground">
-                  No options found.
-                </div>
-              ) : (
-                filteredOptions.map((option) => (
-                  <CommandItem
-                    key={option.value}
-                    onSelect={() => handleSelect(option.value)}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        safeSelected.includes(option.value)
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
-                    />
-                    <div className="flex flex-col">
-                      <span>{option.label}</span>
-                      {option.email && (
-                        <span className="text-xs text-muted-foreground">
-                          {option.email}
-                        </span>
-                      )}
-                    </div>
-                  </CommandItem>
-                ))
-              )}
+              {filteredOptions.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  onSelect={() => handleSelect(option.value)}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      safeSelected.includes(option.value)
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                  <div className="flex flex-col">
+                    <span>{option.label}</span>
+                    {option.email && (
+                      <span className="text-xs text-muted-foreground">
+                        {option.email}
+                      </span>
+                    )}
+                  </div>
+                </CommandItem>
+              ))}
             </CommandGroup>
           </CommandList>
         </Command>

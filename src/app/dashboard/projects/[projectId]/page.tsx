@@ -1,4 +1,6 @@
 import { getProject } from "@/lib/actions/projects";
+import { ProjectHeader } from "@/components/dashboard/project-header";
+import { ProjectTabs } from "@/components/dashboard/project-tabs";
 import { notFound } from "next/navigation";
 import { CreateTask } from "@/components/dashboard/create-task";
 import { TaskList } from "@/components/dashboard/task-list";
@@ -8,28 +10,22 @@ import { useUser } from "@/hooks/use-user";
 import { getUser } from "@/lib/actions/user";
 
 export default async function ProjectPage({
-  params,
+  params: { projectId },
 }: {
   params: { projectId: string };
 }) {
-  const result = await getProject(params.projectId);
+  const { data: project, error } = await getProject(projectId);
   const user = await getUser()
 
-  if (!result.success) {
-    return notFound();
+  if (error || !project) {
+    notFound();
   }
-
-  const project = result.data;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">{project?.name}</h2>
-        <div className="flex items-center gap-4">
-          {/* Add project actions here */}
-        </div>
-      </div>
+      <ProjectHeader project={project} />
 
+      
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border p-4">
           <div className="text-sm font-medium text-muted-foreground">Tasks</div>
@@ -55,23 +51,25 @@ export default async function ProjectPage({
         </div>
       </div>
 
+      <ProjectTabs project={project} />
+
       {/* Add more project details sections here */}
 
-      <div className="space-y-4">
+      {/* <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold tracking-tight">Tasks</h2>
           {project?.managerId === user?.id && (
             <CreateTask
-              projectId={params.projectId}
+              projectId={projectId}
               managerId={project?.managerId as string}
             />
           )}
         </div>
-        <TaskList projectId={params.projectId} />
+        <TaskList projectId={projectId} />
       </div>
 
       <ProjectMembers
-        projectId={params.projectId}
+        projectId={projectId}
         managerId={project?.managerId as string}
         members={project?.members}
       />
@@ -79,7 +77,7 @@ export default async function ProjectPage({
       <div className="space-y-4">
         <h2 className="text-2xl font-bold tracking-tight">Project Chat</h2>
         <ProjectChat
-          projectId={params.projectId}
+          projectId={projectId}
           members={
             project?.members?.map((member) => ({
               id: member.user.id,
@@ -88,7 +86,7 @@ export default async function ProjectPage({
             })) || []
           }
         />
-      </div>
+      </div> */}
     </div>
   );
 }

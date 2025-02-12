@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getTeams } from "@/lib/actions/teams";
+import { getManagerTeams, getTeams } from "@/lib/actions/teams";
 import {
   Table,
   TableBody,
@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User } from "lucide-react";
+import { useUser } from "@/hooks/use-user";
+import { useQuery } from "@tanstack/react-query";
+import TeamListTable from "./team-list-table";
 
 type Team = {
   id: string;
@@ -30,51 +33,35 @@ type Team = {
 };
 
 export function TeamList() {
-  const [teams, setTeams] = useState<Team[]>([]);
+  const { user } = useUser();
 
-  useEffect(() => {
-    async function fetchTeams() {
-      // TODO: Replace with actual user ID
-      const result = await getTeams("user_id");
-      if (result?.success) {
-        setTeams(result?.data as Team[]);
-      }
-    }
-    fetchTeams();
-  }, []);
+  const { data: managerTeams, isLoading: managerTeamsLoading } = useQuery({
+    queryKey: ["manager-teams"],
+    queryFn: async () => await getManagerTeams(user.id),
+    enabled: !!user,
+  });
+
+  const { data: teams, isLoading: teamsLoading } = useQuery({
+    queryKey: ["teams"],
+    queryFn: async () => await getTeams(user.id),
+    enabled: !!user,
+  });
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Team Name</TableHead>
-            <TableHead>Members</TableHead>
-            <TableHead>Projects</TableHead>
-            <TableHead>Description</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {teams.map((team) => (
-            <TableRow key={team.id}>
-              <TableCell className="font-medium">{team.name}</TableCell>
-              <TableCell>
-                <div className="flex -space-x-2">
-                  {team.members.map((member, i) => (
-                    <Avatar key={i} className="h-8 w-8 border-2 border-background">
-                      <AvatarFallback>
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  ))}
-                </div>
-              </TableCell>
-              <TableCell>{team.projects.length} projects</TableCell>
-              <TableCell>{team.description}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+    <div className="flex flex-col gap-3">
+      <div>
+        <h2 className="text-xl font-bold mb-3">Manager Teams</h2>
+        <div className="rounded-md border">
+          <TeamListTable teams={managerTeams?.data!} />
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-xl font-bold mb-3">Members Teams</h2>
+        <div className="rounded-md border">
+          <TeamListTable teams={teams?.data!} />
+        </div>
+      </div>
     </div>
   );
-} 
+}

@@ -20,6 +20,9 @@ import {
 } from "@/components/ui/select";
 import { updateTaskStatus } from "@/lib/actions/tasks";
 import { toast } from "sonner";
+import { CreateTask } from "./create-task";
+import { useProjects } from "@/hooks/use-projects";
+import { useProject } from "@/hooks/use-project";
 
 interface Task {
   id: string;
@@ -38,7 +41,10 @@ interface Task {
   } | null;
 }
 
-const statusColors: Record<TaskStatus, "default" | "secondary" | "destructive" | "outline"> = {
+const statusColors: Record<
+  TaskStatus,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
   TODO: "secondary",
   IN_PROGRESS: "default",
   COMPLETED: "outline",
@@ -57,6 +63,8 @@ export function TaskList({ projectId }: { projectId: string }) {
     queryKey: ["tasks", projectId],
     queryFn: () => getProjectTasks(projectId),
   });
+
+  const { data: projectData } = useProject(projectId);
 
   const { user } = useUser();
   const { isRunning, selectedTaskId, startTask, stopTask } = useTimerStore();
@@ -83,7 +91,9 @@ export function TaskList({ projectId }: { projectId: string }) {
       accessorKey: "priority",
       header: "Priority",
       cell: ({ row }) => {
-        const priority = row.getValue("priority") as keyof typeof priorityColors;
+        const priority = row.getValue(
+          "priority"
+        ) as keyof typeof priorityColors;
         return (
           <Badge className={priorityColors[priority]}>
             {priority.charAt(0) + priority.slice(1).toLowerCase()}
@@ -114,8 +124,8 @@ export function TaskList({ projectId }: { projectId: string }) {
         return (
           <div className="flex items-center">
             <User className="mr-2 h-4 w-4" />
-            {task.assignedToAll 
-              ? "All Members" 
+            {task.assignedToAll
+              ? "All Members"
               : task.user?.username || "Unassigned"}
           </div>
         );
@@ -126,7 +136,8 @@ export function TaskList({ projectId }: { projectId: string }) {
       header: "Status",
       cell: ({ row }) => {
         const task = row.original;
-        const canChangeStatus = task.assignedTo === user?.id || task.assignedToAll;
+        const canChangeStatus =
+          task.assignedTo === user?.id || task.assignedToAll;
 
         return canChangeStatus ? (
           <Select
@@ -153,7 +164,8 @@ export function TaskList({ projectId }: { projectId: string }) {
       id: "timer",
       cell: ({ row }) => {
         const task = row.original;
-        const canManageTimer = task.assignedTo === user?.id || task.assignedToAll;
+        const canManageTimer =
+          task.assignedTo === user?.id || task.assignedToAll;
         const isTaskRunning = isRunning && selectedTaskId === task.id;
 
         if (!canManageTimer) return null;
@@ -162,7 +174,7 @@ export function TaskList({ projectId }: { projectId: string }) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => isTaskRunning ? stopTask() : startTask(task.id)}
+            onClick={() => (isTaskRunning ? stopTask() : startTask(task.id))}
             disabled={isRunning && selectedTaskId !== task.id}
           >
             {isTaskRunning ? (
@@ -176,16 +188,27 @@ export function TaskList({ projectId }: { projectId: string }) {
     },
   ];
 
-  if (isLoading) return <div className="flex justify-center items-center w-full">
-    <Loader2 className="animate-spin" />
-  </div>;
+  if (isLoading)
+    return (
+      <div className="flex justify-center items-center w-full">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
 
   return (
-    <DataTable
-      columns={columns}
-      data={data?.data || []}
-      searchKey="name"
-      pageSize={5}
-    />
+    <>
+      <div className="mb-5 w-full flex justify-end">
+        <CreateTask
+          projectId={projectId}
+          managerId={projectData?.data?.managerId as string}
+        />
+      </div>
+      <DataTable
+        columns={columns}
+        data={data?.data || []}
+        searchKey="name"
+        pageSize={5}
+      />
+    </>
   );
-} 
+}

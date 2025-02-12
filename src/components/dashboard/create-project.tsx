@@ -47,6 +47,7 @@ const projectSchema = z.object({
   description: z.string().optional(),
   color: z.string().optional(),
   billable: z.boolean().default(false),
+  billableAmount: z.number().optional(),
   members: z.array(z.string()).default([]),
 });
 
@@ -223,6 +224,22 @@ export function CreateProject() {
               )}
             />
 
+            {form.watch("billable") && (
+              <FormField
+                control={form.control}
+                name="billableAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Billable Amount</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="members"
@@ -237,7 +254,7 @@ export function CreateProject() {
                     ) : (
                       <MultiSelect
                         options={
-                          users?.map((user: { id: string; username: string; email: string }) => ({
+                          users?.data.map((user: { id: string; username: string; email: string }) => ({
                             label: user.username || '',
                             value: user.id,
                             email: user.email,

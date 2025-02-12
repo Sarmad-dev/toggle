@@ -33,10 +33,7 @@ export default function SignInPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-      const data = (await response.json()) as {
-        success: boolean;
-        message: string;
-      };
+      const data = await response.json()
 
       return data;
     },

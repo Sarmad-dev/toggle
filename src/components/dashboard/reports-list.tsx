@@ -3,40 +3,23 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { BarChart, Clock, DollarSign, Users } from "lucide-react";
 
-const reports = [
-  {
-    title: "Time Tracked",
-    description: "Total hours tracked this month",
-    value: "164h 20m",
-    icon: Clock,
-  },
-  {
-    title: "Revenue",
-    description: "Total billable amount this month",
-    value: "$3,240",
-    icon: DollarSign,
-  },
-  {
-    title: "Team Activity",
-    description: "Active team members this week",
-    value: "8 members",
-    icon: Users,
-  },
-  {
-    title: "Projects",
-    description: "Active projects this month",
-    value: "12 projects",
-    icon: BarChart,
-  },
-];
+interface Report {
+  title: string;
+  description: string;
+  value: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
 
-export function ReportsList() {
+interface ReportsListProps {
+  reports: Report[];
+}
+
+export function ReportsList({ reports }: ReportsListProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {reports.map((report) => (

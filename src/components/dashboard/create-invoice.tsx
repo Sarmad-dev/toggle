@@ -7,7 +7,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -22,45 +21,61 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { createInvoice } from "@/lib/actions/invoices";
+import { useUser } from "@/hooks/use-user";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
-  dueDate: z.string(),
+  clientName: z.string().min(1, "Client name is required"),
+  clientEmail: z.string().email().optional(),
+  address: z.string().min(1, "Address is required"),
   amount: z.string().min(1, "Amount is required"),
-  currency: z.string().default("USD"),
+  dueDate: z.string(),
 });
 
-export function CreateInvoice() {
-  const [open, setOpen] = useState(false);
+interface CreateInvoiceProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
+  const { user } = useUser();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      dueDate: format(new Date().setDate(new Date().getDate() + 30), "yyyy-MM-dd"),
-      amount: "",
-      currency: "USD",
+      dueDate: new Date().toISOString().split('T')[0],
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) return;
+    
     try {
-      // TODO: Implement invoice creation
+      setIsSubmitting(true);
+      await createInvoice({
+        ...values,
+        amount: parseFloat(values.amount),
+        dueDate: new Date(values.dueDate),
+        timeEntryIds: [],
+        userId: user.id,
+      });
       toast.success("Invoice created successfully");
-      setOpen(false);
+      onOpenChange(false);
       form.reset();
     } catch (error) {
-      toast.error("Something went wrong");
+      toast.error("Failed to create invoice");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Invoice
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Invoice</DialogTitle>
@@ -69,12 +84,38 @@ export function CreateInvoice() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="dueDate"
+              name="clientName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Due Date</FormLabel>
+                  <FormLabel>Client Name</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="clientEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -87,14 +128,55 @@ export function CreateInvoice() {
                 <FormItem>
                   <FormLabel>Amount</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                    <Input type="number" step="0.01" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
-              Create Invoice
+            <FormField
+              control={form.control}
+              name="dueDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Due Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(new Date(field.value), "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => field.onChange(date?.toISOString())}
+                        disabled={(date) =>
+                          date < new Date(new Date().setHours(0, 0, 0, 0))
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Creating..." : "Create Invoice"}
             </Button>
           </form>
         </Form>

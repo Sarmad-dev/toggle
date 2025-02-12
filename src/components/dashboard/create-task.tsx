@@ -2,8 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,16 +24,26 @@ import { createTask } from "@/lib/actions/tasks";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { useUser } from "@/hooks/use-user";
 import { Plus, Loader2 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Textarea } from "../ui/textarea";
 
 const formSchema = z.object({
   name: z.string().min(2, "Title must be at least 2 characters"),
   description: z.string().optional(),
-  dueDate: z.string().optional(),
+  dueDate: z.date().optional(),
   assignedTo: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
   assignToAll: z.boolean().default(false),
@@ -34,7 +56,9 @@ interface CreateTaskProps {
 
 export function CreateTask({ projectId, managerId }: CreateTaskProps) {
   const [open, setOpen] = useState(false);
-  const [members, setMembers] = useState<Array<{ id: string; username: string }>>([]);
+  const [members, setMembers] = useState<
+    Array<{ id: string; username: string }>
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useUser();
@@ -47,7 +71,7 @@ export function CreateTask({ projectId, managerId }: CreateTaskProps) {
     defaultValues: {
       name: "",
       description: "",
-      dueDate: format(new Date(), "yyyy-MM-dd"),
+      dueDate: new Date(),
       assignedTo: undefined,
       priority: "MEDIUM",
       assignToAll: false,
@@ -78,6 +102,7 @@ export function CreateTask({ projectId, managerId }: CreateTaskProps) {
       setIsLoading(true);
       const result = await createTask({
         ...values,
+        dueDate: values.dueDate?.toISOString(),
         projectId,
       });
 
@@ -90,7 +115,7 @@ export function CreateTask({ projectId, managerId }: CreateTaskProps) {
       setOpen(false);
       form.reset();
     } catch (error) {
-      console.error(error)
+      console.error(error);
       toast.error("Failed to create task");
     } finally {
       setIsLoading(false);
@@ -138,7 +163,7 @@ export function CreateTask({ projectId, managerId }: CreateTaskProps) {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Input placeholder="Task description" {...field} />
+                      <Textarea placeholder="Task description" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -148,11 +173,39 @@ export function CreateTask({ projectId, managerId }: CreateTaskProps) {
                 control={form.control}
                 name="dueDate"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Due Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date < new Date(new Date().setHours(0, 0, 0, 0))
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -181,7 +234,10 @@ export function CreateTask({ projectId, managerId }: CreateTaskProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Assign To</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select member" />
@@ -238,4 +294,4 @@ export function CreateTask({ projectId, managerId }: CreateTaskProps) {
       </Dialog>
     </>
   );
-} 
+}
