@@ -1,12 +1,13 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 
 export async function getTimeTrackingStats(userId: string) {
   try {
-    const startDate = new Date();
-    startDate.setDate(1); // Start of the current month
-    const endDate = new Date(); // Current date
+    const today = new Date();
+    const startDate = startOfMonth(subMonths(today, 11)); // Last 12 months
+    const endDate = endOfMonth(today);
 
     const timeEntries = await prisma.timeEntry.findMany({
       where: {
@@ -16,22 +17,80 @@ export async function getTimeTrackingStats(userId: string) {
           lte: endDate,
         },
       },
-      select: {
-        duration: true,
+      orderBy: {
+        startTime: 'asc',
       },
     });
 
-    const totalDuration = timeEntries.reduce((acc, entry) => acc + (entry.duration || 0), 0);
+    // Group entries by date and calculate hours
+    const entriesByDate = timeEntries.reduce((acc, entry) => {
+      const date = format(entry.startTime, 'yyyy-MM-dd');
+      const hours = Number((entry.duration! / 3600).toFixed(2));
+      
+      if (!acc[date]) {
+        acc[date] = { date, hours: 0 };
+      }
+      acc[date].hours += hours;
+      return acc;
+    }, {} as Record<string, { date: string; hours: number }>);
+
+    // Get active projects count
+    const activeProjects = await prisma.project.count({
+      where: {
+        userId,
+      },
+    });
+
+    // Get total unique members across all projects
+    const projectMembers = await prisma.projectMember.findMany({
+      where: {
+        project: {
+          userId,
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    const uniqueMembers = new Set(projectMembers.map(member => member.userId));
+    const totalMembers = uniqueMembers.size;
+
+    // Calculate total earnings from billable projects
+    const timeEntriesWithBillableAmount = await prisma.timeEntry.findMany({
+      where: {
+        userId,
+        project: {
+          billable: true,
+        },
+      },
+      include: {
+        project: {
+          select: {
+            billableAmount: true,
+          },
+        },
+      },
+    });
+
+    const totalEarnings = timeEntriesWithBillableAmount.reduce((acc, entry) => {
+      const hours = entry.duration! / 3600;
+      return acc + (hours * (entry.project?.billableAmount || 0));
+    }, 0);
 
     return {
       success: true,
       data: {
-        totalHours: (totalDuration / 3600).toFixed(2), // Convert seconds to hours
+        totalHours: Number(timeEntries.reduce((total, entry) => total + entry.duration! / 3600, 0).toFixed(2)),
+        totalEarnings: Number(totalEarnings.toFixed(2)),
+        activeProjects,
+        totalMembers,
+        timeEntries: Object.values(entriesByDate),
       },
     };
   } catch (error) {
     console.error("Error fetching time tracking stats:", error);
-    return { success: false, error: "Failed to fetch time tracking stats" };
+    return { success: false, error: "Failed to fetch stats" };
   }
 }
 

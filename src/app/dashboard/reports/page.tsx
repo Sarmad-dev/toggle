@@ -243,7 +243,7 @@ export default function ReportsPage() {
       
       <div id="report-container">
         <div className="px-8">
-          <ReportsList reports={reports} />
+          <ReportsList data={timeStats?.data!} />
           
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Filtered Reports</h2>
