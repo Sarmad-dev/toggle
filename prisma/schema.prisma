@@ -39,6 +39,9 @@ model User {
   teamInvitations     TeamInvitation[]    @relation("TeamInvitedUser")
   sentTeamInvites     TeamInvitation[]    @relation("TeamInvitedByUser")
   invoices            Invoice[]
+  plan                String              @default("FREE") // FREE or PRO
+  lemonSqueezyCustomerId String?
+  lemonSqueezySubscriptionId String?      @unique
 }
 
 enum UserRole {

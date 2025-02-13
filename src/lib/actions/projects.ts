@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createProjectInvitation } from "./project-invitations";
 import { NotificationType } from "@prisma/client";
 import { createClient } from "../supabase/server";
+import { checkSubscriptionLimit } from "@/lib/subscription";
 
 export async function createProject(data: {
   name: string;
@@ -16,6 +17,14 @@ export async function createProject(data: {
   members: string[];
   teamId?: string;
 }) {
+  const subscriptionCheck = await checkSubscriptionLimit(data.managerId, 'projects');
+  if (!subscriptionCheck.allowed) {
+    return { 
+      success: false, 
+      error: subscriptionCheck.message + ". Please upgrade to Pro to create more projects." 
+    };
+  }
+
   try {
     const project = await prisma.project.create({
       data: {

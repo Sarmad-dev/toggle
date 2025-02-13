@@ -42,12 +42,15 @@ const predefinedColors = [
   { name: "Pink", value: "#ec4899" },
 ];
 
-const projectSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+const formSchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters"),
   description: z.string().optional(),
   color: z.string().optional(),
   billable: z.boolean().default(false),
-  billableAmount: z.number().optional(),
+  billableAmount: z
+    .string()
+    .optional()
+    .transform((val) => (val ? Number(val) : undefined)),
   members: z.array(z.string()).default([]),
 });
 
@@ -58,8 +61,8 @@ export function CreateProject() {
   const [customColor, setCustomColor] = useState(false);
   const queryClient = useQueryClient();
 
-  const form = useForm<z.infer<typeof projectSchema>>({
-    resolver: zodResolver(projectSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -71,22 +74,28 @@ export function CreateProject() {
 
   const { mutateAsync } = useMutation({
     mutationKey: ["create-project"],
-    mutationFn: (values: z.infer<typeof projectSchema>) =>
-      createProject({
+    mutationFn: async (values: z.infer<typeof formSchema>) =>
+      await createProject({
         ...values,
         managerId: user!.id,
         members: values.members || [],
       }),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (!data.success) {
+        toast.error(data.error);
+        return;
+      }
+      toast.success("Project created successfully");
       queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+    onError: (error) => {
+      toast.error(error.message);
     },
   });
 
-  async function onSubmit(values: z.infer<typeof projectSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       await mutateAsync(values);
-
-      toast.success("Project created successfully");
       setOpen(false);
       form.reset();
     } catch (error) {
@@ -232,7 +241,12 @@ export function CreateProject() {
                   <FormItem>
                     <FormLabel>Billable Amount</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -254,11 +268,17 @@ export function CreateProject() {
                     ) : (
                       <MultiSelect
                         options={
-                          users?.data.map((user: { id: string; username: string; email: string }) => ({
-                            label: user.username || '',
-                            value: user.id,
-                            email: user.email,
-                          })) ?? []
+                          users?.data.map(
+                            (user: {
+                              id: string;
+                              username: string;
+                              email: string;
+                            }) => ({
+                              label: user.username || "",
+                              value: user.id,
+                              email: user.email,
+                            })
+                          ) ?? []
                         }
                         selected={field.value ?? []}
                         onChange={field.onChange}
