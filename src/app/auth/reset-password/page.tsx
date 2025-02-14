@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { AuthForm } from '@/components/auth/auth-form';
-import { supabaseClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import { resetPasswordSchema } from '@/lib/validations/auth';
 import { toast } from 'sonner';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [isValidAccess, setIsValidAccess] = useState(false);
+  const supabaseClient = createClient()
 
   useEffect(() => {
     const checkSession = async () => {

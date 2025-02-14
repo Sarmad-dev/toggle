@@ -10,6 +10,9 @@ declare global {
       socketIO: Server | undefined;
     }
   }
+
+  var io: import("socket.io").Server;
+  var httpServer: import("http").Server;
 }
 
 export type NotificationType = PrismaNotificationType;

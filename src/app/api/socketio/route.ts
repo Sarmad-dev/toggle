@@ -1,44 +1,55 @@
-import { Server } from "socket.io";
 import { NextResponse } from "next/server";
-import type { NextApiResponseServerIO } from "@/lib/socket";
+import { Server as NetServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
 
-let io: Server;
+export async function GET() {
+  try {
+    // Get the raw HTTP server instance
+    const httpServer = global.httpServer as NetServer;
+    
+    if (!httpServer) {
+      console.error("HTTP server not found");
+      return NextResponse.json(
+        { error: "Socket.IO server not initialized" },
+        { status: 500 }
+      );
+    }
 
-export async function GET(req: Request, res: NextApiResponseServerIO) {
-  if (!io) {
-    io = new Server(res.socket.server, {
-      path: "/api/socketio",
-      addTrailingSlash: false,
-      cors: {
-        origin: "*",
-        methods: ["GET", "POST"],
-      },
-      transports: ["polling"],
-      connectionStateRecovery: {
-        maxDisconnectionDuration: 2000
-      }
-    });
-
-    io.on("connection", (socket) => {
-      console.log("Client connected:", socket.id);
-      
-      socket.on("disconnect", () => {
-        console.log("Client disconnected:", socket.id);
+    // Initialize Socket.IO if not already initialized
+    if (!global.io) {
+      global.io = new SocketIOServer(httpServer, {
+        path: "/api/socketio",
+        addTrailingSlash: false,
+        cors: {
+          origin: process.env.NEXT_PUBLIC_APP_URL,
+          methods: ["GET", "POST"],
+        },
       });
 
-      // Add your other socket event handlers here
-    });
+      global.io.on("connection", (socket) => {
+        console.log("Client connected");
 
-    res.socket.server.io = io;
-  }
+        socket.on("join-project", (projectId: string) => {
+          socket.join(`project-${projectId}`);
+        });
 
-  return new NextResponse("Socket.IO server running", { 
-    status: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST",
+        socket.on("disconnect", () => {
+          console.log("Client disconnected");
+        });
+      });
     }
-  });
+
+    return NextResponse.json(
+      { success: true, message: "Socket.IO server running" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Socket.IO initialization error:", error);
+    return NextResponse.json(
+      { error: "Failed to initialize Socket.IO server" },
+      { status: 500 }
+    );
+  }
 }
 
 export const dynamic = "force-dynamic";
