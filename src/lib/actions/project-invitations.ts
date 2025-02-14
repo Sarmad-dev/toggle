@@ -31,10 +31,7 @@ export async function createProjectInvitation({
       type: "PROJECT_INVITATION",
       title: "Project Invitation",
       message: `You have been invited to join project ${invitation.project.name}`,
-      data: {
-        projectId,
-        invitationId: invitation.id,
-      },
+      data: projectId
     });
 
     return { success: true, data: invitation };
@@ -79,10 +76,7 @@ export async function handleProjectInvitation({
         type: "INVITATION_ACCEPTED",
         title: "Invitation Accepted",
         message: `${invitation.user.username} has accepted your invitation to join ${invitation.project.name}`,
-        data: {
-          projectId: invitation.projectId,
-          userId: invitation.userId,
-        },
+        data: invitation.projectId
       });
     }
 
