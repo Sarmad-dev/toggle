@@ -8,6 +8,7 @@ import { ProjectSettingsForm } from "@/components/dashboard/settings/project-set
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { ProjectWithDetails } from "@/types/global";
 
 export default function ProjectSettingsPage() {
   const params = useParams();
@@ -38,7 +39,7 @@ export default function ProjectSettingsPage() {
         <h1 className="text-2xl font-bold">Project Settings</h1>
       </div>
 
-      <ProjectSettingsForm project={project.data} />
+      <ProjectSettingsForm project={project.data as ProjectWithDetails} />
     </div>
   );
 } 

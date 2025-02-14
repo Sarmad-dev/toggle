@@ -29,6 +29,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getManagerTeams } from "@/lib/actions/teams";
 import { useUser } from "@/hooks/use-user";
 import { Loader2 } from "lucide-react";
+import { ProjectWithDetails } from "@/types/global";
 
 const formSchema = z.object({
   name: z.string().min(1, "Project name is required"),
@@ -40,7 +41,7 @@ const formSchema = z.object({
 });
 
 interface ProjectSettingsFormProps {
-  project: { id: string } & z.infer<typeof formSchema>;
+  project: ProjectWithDetails;
 }
 
 export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {

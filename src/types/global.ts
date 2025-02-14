@@ -1,6 +1,11 @@
 /* eslint no-var: 0 */
 import { Server } from "socket.io";
-import { NotificationType as PrismaNotificationType, Project, Team, User } from "@prisma/client";
+import {
+  NotificationType as PrismaNotificationType,
+  Project,
+  Team,
+  User,
+} from "@prisma/client";
 
 declare global {
   let socketIO: Server | undefined;
@@ -140,7 +145,7 @@ export interface Report {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED"
+export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED";
 
 interface ChartDataset {
   label: string;
@@ -177,7 +182,7 @@ export interface ChartOptions {
   responsive: boolean;
   plugins: {
     legend: {
-      position: 'top' | 'bottom' | 'left' | 'right';
+      position: "top" | "bottom" | "left" | "right";
     };
     title: {
       display: boolean;
@@ -186,7 +191,32 @@ export interface ChartOptions {
   };
 }
 
-export type TeamList = (Team & {
+export type TeamList = Team & {
   members: { user: User }[];
   projects: Project[];
-})
+};
+
+export interface ProjectWithDetails {
+  id: string;
+  name: string;
+  description: string;
+  teamId: string | "none";
+  billable: boolean;
+  billableAmount: number;
+  color: string;
+  team: {
+    id: string;
+    name: string;
+  } | null;
+  members: {
+    user: {
+      id: string;
+      username: string;
+    };
+  }[];
+  _count: {
+    tasks: number;
+    members: number;
+    timeEntries: number;
+  };
+}
