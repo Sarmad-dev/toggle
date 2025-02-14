@@ -3,11 +3,8 @@ import { ProjectHeader } from "@/components/dashboard/project-header";
 import { ProjectTabs } from "@/components/dashboard/project-tabs";
 import { notFound } from "next/navigation";
 
-export default async function ProjectPage({
-  params: { projectId },
-}: {
-  params: { projectId: string };
-}) {
+export default async function ProjectPage({ params }: { params: Promise<{ projectId: string}>}) {
+  const { projectId } = await params
   const { data: project, error } = await getProject(projectId);
 
   if (error || !project) {
