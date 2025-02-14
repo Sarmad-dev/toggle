@@ -34,14 +34,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
-  const { event_name, data, meta } = body;
+  const { data, meta } = body;
 
-  console.log("📢 Event:", event_name);
+  console.log("📢 Event:", meta.event_name);
   console.log("📄 Data:", JSON.stringify(data, null, 2));
   console.log("🔍 Meta:", JSON.stringify(meta, null, 2));
 
   try {
-    switch (event_name) {
+    switch (meta.event_name) {
       case 'subscription_created':
       case 'subscription_resumed':
       case 'subscription_updated':
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
           where: { id: user.id },
           data: {
             plan: 'FREE',
-            lemonSqueezySubscriptionId: event_name === 'subscription_cancelled' ? null : undefined,
+            lemonSqueezySubscriptionId: meta.event_name === 'subscription_cancelled' ? null : undefined,
           },
         });
         break;
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Webhook error:', error);
     console.error('Error details:', {
-      event: event_name,
+      event: meta.event_name,
       data: JSON.stringify(data, null, 2),
     });
     return NextResponse.json(

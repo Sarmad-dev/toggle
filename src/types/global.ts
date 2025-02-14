@@ -63,7 +63,6 @@ export interface ProjectChat {
 }
 
 export interface LemonSqueezyCheckout {
-  event_name: string;
   data: {
     type: string;
     id: string;
@@ -126,6 +125,7 @@ export interface LemonSqueezyCheckout {
     };
   };
   meta: {
+    event_name: string;
     custom_data: {
       userId: string;
     };
