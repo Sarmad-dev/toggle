@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
     };
 
     checkSession();
-  }, [router]);
+  }, [router, supabaseClient.auth]);
 
   const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
     try {

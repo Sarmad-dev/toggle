@@ -1,3 +1,4 @@
+/* eslint no-var: 0 */
 import { Server } from "socket.io";
 import { NotificationType as PrismaNotificationType, Project, Team, User } from "@prisma/client";
 
