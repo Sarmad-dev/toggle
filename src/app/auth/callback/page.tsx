@@ -14,7 +14,7 @@ export default function AuthCallbackPage() {
       try {
         // Listen for auth state changes
         const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
-          async (event, session) => {
+          async (event) => {
             if (event === 'SIGNED_IN') {
               // User has been signed in after email verification
               setVerificationStatus('verified')

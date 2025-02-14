@@ -16,7 +16,6 @@ import { FcGoogle } from "react-icons/fc";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 interface AuthFormProps<T extends z.ZodType> {
   schema: T;

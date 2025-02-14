@@ -2,7 +2,6 @@
 
 import { AuthForm } from "@/components/auth/auth-form"
 import { signUpSchema, type SignUpFormData } from "@/lib/validations/auth"
-import { AuthError } from "@supabase/supabase-js"
 import { toast } from "sonner"
 import { useMutation } from "@tanstack/react-query"
 
