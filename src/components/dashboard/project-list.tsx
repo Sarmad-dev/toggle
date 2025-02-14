@@ -16,7 +16,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface Project {
@@ -43,7 +42,6 @@ interface Project {
 export function ProjectList() {
   const { user } = useUser();
   const { isRunning, selectedProjectId, start, stop } = useTimerStore();
-  const router = useRouter();
 
   const {
     data: projects,
@@ -197,7 +195,7 @@ export function ProjectList() {
   return (
     <DataTable
       columns={columns}
-      data={projects?.data || []}
+      data={projects?.data as Project[]}
       searchKey="name"
       pageSize={8}
     />

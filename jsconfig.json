@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "moduleResolution": "node"
+  },
+  "$schema": "https://json.schemastore.org/jsconfig"
+} 

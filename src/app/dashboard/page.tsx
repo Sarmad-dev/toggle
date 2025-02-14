@@ -9,7 +9,7 @@ export default function DashboardPage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Time Entries</h2>
           <p className="text-muted-foreground">
-            Here's a list of your recent time entries
+            Here&apos;s a list of your recent time entries
           </p>
         </div>
         <TimeEntryList />

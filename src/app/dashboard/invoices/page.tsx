@@ -21,7 +21,7 @@ export default function InvoicesPage() {
     refetch,
   } = useQuery({
     queryKey: ["invoices"],
-    queryFn: () => getInvoices(user?.id!),
+    queryFn: () => getInvoices(user?.id as string),
     enabled: !!user,
   });
 

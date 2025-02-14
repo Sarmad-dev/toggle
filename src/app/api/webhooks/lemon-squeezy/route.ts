@@ -1,9 +1,10 @@
+import { LemonSqueezyCheckout } from '../../../../types/global';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from 'crypto';
-import { headers } from 'next/headers';
+import { headers } from "next/headers";
 
-function verifySignature(payload: any, signature: string) {
+function verifySignature(payload: LemonSqueezyCheckout, signature: string) {
   const hmac = crypto.createHmac('sha256', process.env.LEMON_SQUEEZY_SIGNING_SECRET!);
   const digest = hmac.update(JSON.stringify(payload)).digest('hex');
   return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'No signature' }, { status: 401 });
   }
 
-  const body = await req.json();
+  const body = await req.json() as LemonSqueezyCheckout;
   console.log('📦 Webhook Body:', JSON.stringify(body, null, 2));
   
   if (!verifySignature(body, signature)) {

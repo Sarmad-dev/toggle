@@ -6,7 +6,7 @@ import { useUser } from "@/hooks/use-user";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Folder, Loader2 } from "lucide-react";
+import { Clock, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface TimeEntry {

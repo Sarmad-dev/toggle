@@ -2,12 +2,6 @@ import { getProject } from "@/lib/actions/projects";
 import { ProjectHeader } from "@/components/dashboard/project-header";
 import { ProjectTabs } from "@/components/dashboard/project-tabs";
 import { notFound } from "next/navigation";
-import { CreateTask } from "@/components/dashboard/create-task";
-import { TaskList } from "@/components/dashboard/task-list";
-import { ProjectChat } from "@/components/dashboard/chat/project-chat";
-import { ProjectMembers } from "@/components/dashboard/members/project-members";
-import { useUser } from "@/hooks/use-user";
-import { getUser } from "@/lib/actions/user";
 
 export default async function ProjectPage({
   params: { projectId },
@@ -15,7 +9,6 @@ export default async function ProjectPage({
   params: { projectId: string };
 }) {
   const { data: project, error } = await getProject(projectId);
-  const user = await getUser()
 
   if (error || !project) {
     notFound();

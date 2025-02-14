@@ -16,6 +16,7 @@ export async function GET() {
       data: users.filter(user => user.username)
     });
   } catch (error) {
+    console.error("Failed to fetch users", error)
     return NextResponse.json(
       { success: false, error: "Failed to fetch users" },
       { status: 500 }

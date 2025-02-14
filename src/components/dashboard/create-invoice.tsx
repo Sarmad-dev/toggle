@@ -68,6 +68,7 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
       onOpenChange(false);
       form.reset();
     } catch (error) {
+      console.error("Error creating invoice: ", error)
       toast.error("Failed to create invoice");
     } finally {
       setIsSubmitting(false);

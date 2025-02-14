@@ -39,6 +39,7 @@ export async function createProjectInvitation({
 
     return { success: true, data: invitation };
   } catch (error) {
+    console.error("Failed to create invitation: ", error)
     return { success: false, error: "Failed to create invitation" };
   }
 }

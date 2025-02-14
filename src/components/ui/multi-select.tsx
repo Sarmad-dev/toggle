@@ -129,7 +129,7 @@ export function MultiSelect({
       >
         <Command className={className} {...props}>
           <CommandInput
-            placeholder="Search users..."
+            placeholder={placeholder}
             value={searchQuery}
             onValueChange={(value) => setSearchQuery(value)}
             aria-label="Search users"

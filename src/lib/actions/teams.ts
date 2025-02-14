@@ -29,6 +29,7 @@ export async function createTeam(data: {
     revalidatePath("/dashboard/teams");
     return { success: true, data: team };
   } catch (error) {
+    console.error("Failed to create team: ", error)
     return { success: false, error: "Failed to create team" };
   }
 }
@@ -51,6 +52,7 @@ export async function getManagerTeams(managerId: string) {
 
     return { success: true, data: teams }
   } catch (error) {
+    console.error("Failed to fetch teams: ", error)
     return { success: false, error: "Failed to fetch teams"}
   }
 }
@@ -76,6 +78,7 @@ export async function getTeams(userId: string) {
     });
     return { success: true, data: teams };
   } catch (error) {
+    console.error("Failed to fetch teams: ", error)
     return { success: false, error: "Failed to fetch teams" };
   }
 }

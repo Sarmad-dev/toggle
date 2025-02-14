@@ -35,8 +35,10 @@ export function ProfileSettings() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // TODO: Implement profile update
+      console.log("Profile updated: ", values)
       toast.success("Profile updated successfully");
     } catch (error) {
+      console.error("Failed to update profile: ", error)
       toast.error("Something went wrong");
     }
   }

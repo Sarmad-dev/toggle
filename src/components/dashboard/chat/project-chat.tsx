@@ -6,13 +6,12 @@ import { useUser } from "@/hooks/use-user";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChatMessageFormData, chatMessageSchema } from "@/lib/validations/chat";
 import { format } from "date-fns";
-import { Send, Paperclip, X, Loader2, FileText, FileSpreadsheet, Presentation, File, Reply, ChartPie } from "lucide-react";
+import { Send, Paperclip, X, Loader2, FileText, FileSpreadsheet, File, Reply, ChartPie } from "lucide-react";
 import type { OnlineUser, ChatMessage } from "@/types/global";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -25,6 +24,7 @@ import {
   TooltipTrigger 
 } from "@/components/ui/tooltip";
 import { FilePreviewModal } from "./file-preview-modal";
+import Image from "next/image";
 
 interface ProjectChatProps {
   projectId: string;
@@ -40,18 +40,13 @@ interface FilePreview {
   preview: string;
 }
 
-// Add this type to help with message organization
-interface MessageWithReplies extends ChatMessage {
-  replies?: MessageWithReplies[];
-}
-
-export function ProjectChat({ projectId, members }: ProjectChatProps) {
+export function ProjectChat({ projectId }: ProjectChatProps) {
   const { user } = useUser();
   const { socket } = useSocket();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [typingUser, setTypingUser] = useState<string | null>(null);
+  const [, setTypingUser] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<FilePreview[]>([]);
@@ -177,6 +172,7 @@ export function ProjectChat({ projectId, members }: ProjectChatProps) {
       setSelectedFiles([]);
       setReplyTo(null);
     } catch (error) {
+      console.error("Error sending message: ", error)
       toast.error("Failed to send message");
     } finally {
       setIsSubmitting(false);
@@ -256,7 +252,7 @@ export function ProjectChat({ projectId, members }: ProjectChatProps) {
         if (file.preview) URL.revokeObjectURL(file.preview);
       });
     };
-  }, []);
+  }, [selectedFiles]);
 
   const handleReply = (message: ChatMessage) => {
     setReplyTo(message);
@@ -353,12 +349,13 @@ export function ProjectChat({ projectId, members }: ProjectChatProps) {
             )}
             
             {message.fileUrl && (
-              <div className="mt-2">
+              <div className="mt-2 relative">
                 {message.fileType?.startsWith('image/') ? (
-                  <img
+                  <Image
                     src={message.fileUrl}
                     alt={message.fileName || 'Attached image'}
                     className="max-h-48 w-full object-cover rounded-md cursor-pointer"
+                    fill
                     onClick={() => setPreviewFile({
                       url: message.fileUrl!,
                       type: message.fileType!,
@@ -469,10 +466,12 @@ export function ProjectChat({ projectId, members }: ProjectChatProps) {
                     </Button>
                   </div>
                   {file.preview && (
-                    <img 
+                    <Image
                       src={file.preview} 
                       alt="Preview" 
                       className="mt-2 h-32 w-full rounded-md object-cover"
+                      width={16}
+                      height={9}
                     />
                   )}
                 </div>

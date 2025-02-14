@@ -1,8 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
-import { formatISO } from "date-fns";
+import { InvoiceStatus } from "@/types/global";
 
 export async function createInvoice(data: {
   clientName: string;
@@ -102,7 +101,7 @@ export async function updateInvoice(id: string, data: {
   }
 }
 
-export async function updateInvoiceStatus(id: string, status: "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED") {
+export async function updateInvoiceStatus(id: string, status: InvoiceStatus) {
   try {
     const invoice = await prisma.invoice.update({
       where: { id },
@@ -110,6 +109,7 @@ export async function updateInvoiceStatus(id: string, status: "DRAFT" | "SENT" |
     });
     return { success: true, data: invoice };
   } catch (error) {
+    console.error("Error updating the invoice status: ", error)
     return { success: false, error: "Failed to update invoice status" };
   }
 } 

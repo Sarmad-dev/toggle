@@ -1,36 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { getManagerTeams, getTeams } from "@/lib/actions/teams";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useQuery } from "@tanstack/react-query";
 import TeamListTable from "./team-list-table";
-
-type Team = {
-  id: string;
-  name: string;
-  description: string | null;
-  members: {
-    user: {
-      username: string;
-      email: string;
-    };
-    role: string;
-  }[];
-  projects: {
-    name: string;
-  }[];
-};
+import { Spinner } from "../ui";
+import { TeamList as TeamListType } from "@/types/global";
 
 export function TeamList() {
   const { user } = useUser();
@@ -47,19 +22,23 @@ export function TeamList() {
     enabled: !!user,
   });
 
+  if (managerTeamsLoading || teamsLoading) {
+    return <Spinner />
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <div>
         <h2 className="text-xl font-bold mb-3">Manager Teams</h2>
         <div className="rounded-md border">
-          <TeamListTable teams={managerTeams?.data!} />
+          <TeamListTable teams={managerTeams?.data as TeamListType[]} />
         </div>
       </div>
 
       <div>
         <h2 className="text-xl font-bold mb-3">Members Teams</h2>
         <div className="rounded-md border">
-          <TeamListTable teams={teams?.data!} />
+          <TeamListTable teams={teams?.data as TeamListType[]} />
         </div>
       </div>
     </div>

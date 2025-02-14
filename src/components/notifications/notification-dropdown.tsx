@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { NotificationItem } from "./notification-item";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getNotifications, markAsRead } from "@/lib/actions/notifications";
+import { getNotifications } from "@/lib/actions/notifications";
 import { useEffect } from "react";
 import { useSocket } from "@/hooks/use-socket";
 import { useUser } from "@/hooks/use-user";
@@ -43,10 +43,10 @@ export function NotificationDropdown() {
 
   const unreadCount = notifications?.data?.filter(n => !n.read).length || 0;
 
-  const handleAction = async () => {
-    await markAsRead(user?.id);
-    queryClient.invalidateQueries({ queryKey: ["notifications"] });
-  };
+  // const handleAction = async () => {
+  //   await markAsRead(user?.id);
+  //   queryClient.invalidateQueries({ queryKey: ["notifications"] });
+  // };
 
   return (
     <DropdownMenu>
@@ -74,7 +74,7 @@ export function NotificationDropdown() {
               title={notification.title}
               message={notification.message}
               read={notification.read}
-              data={notification.data}
+              data={notification.data as string}
               userId={notification.userId}
               createdAt={notification.createdAt}
             />

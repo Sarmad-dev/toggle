@@ -10,9 +10,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { email, password } = signInSchema.parse(body);
 
-    console.log("EMAIL: ", email)
-    console.log("PASSWORD: ", password)
-
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -32,7 +29,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { error: authError, data: authData } = await supabaseServer.auth.signInWithPassword({
+    const { error: authError } = await supabaseServer.auth.signInWithPassword({
       email,
       password,
     });

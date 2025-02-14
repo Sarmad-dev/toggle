@@ -6,7 +6,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { TaskStatus, Priority, TaskPriority } from "@prisma/client";
+import { TaskPriority } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Play, Square, User, Calendar, Loader2 } from "lucide-react";
 import { useTimerStore } from "@/stores/use-timer-store";
@@ -21,7 +21,6 @@ import {
 import { updateTaskStatus } from "@/lib/actions/tasks";
 import { toast } from "sonner";
 import { CreateTask } from "./create-task";
-import { useProjects } from "@/hooks/use-projects";
 import { useProject } from "@/hooks/use-project";
 
 interface Task {
@@ -41,14 +40,14 @@ interface Task {
   } | null;
 }
 
-const statusColors: Record<
-  TaskStatus,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  TODO: "secondary",
-  IN_PROGRESS: "default",
-  COMPLETED: "outline",
-} as const;
+// const statusColors: Record<
+//   TaskStatus,
+//   "default" | "secondary" | "destructive" | "outline"
+// > = {
+//   TODO: "secondary",
+//   IN_PROGRESS: "default",
+//   COMPLETED: "outline",
+// } as const;
 
 const priorityColors = {
   LOW: "bg-blue-500/10 text-blue-500",
@@ -78,6 +77,7 @@ export function TaskList({ projectId }: { projectId: string }) {
         toast.error(result?.error || "Failed to update task status");
       }
     } catch (error) {
+      console.error("Failed to update Status: ", error)
       toast.error("Failed to update task status");
     }
   };

@@ -43,7 +43,7 @@ export default function AuthCallbackPage() {
     }
 
     handleEmailVerification()
-  }, [router])
+  }, [router, supabaseClient.auth])
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center">

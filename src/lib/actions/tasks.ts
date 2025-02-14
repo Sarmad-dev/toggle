@@ -1,7 +1,6 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notifications";
 
@@ -36,11 +35,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
       type: "TASK_STATUS_CHANGED",
       title: "Task Status Updated",
       message: `Task "${updatedTask.name}" status changed to ${status}`,
-      data: {
-        taskId: updatedTask.id,
-        projectId: updatedTask.projectId,
-        status,
-      },
+      data: updatedTask.id
     });
 
     revalidatePath(`/dashboard/projects/${updatedTask.projectId}`);
@@ -65,16 +60,20 @@ export async function createTask(data: {
 }) {
   try {
     // If assignToAll is true, get all project members
-    let assignees: string[] = [];
-    if (data.assignToAll) {
-      const members = await prisma.projectMember.findMany({
-        where: { projectId: data.projectId },
-        select: { userId: true }
-      });
-      assignees = members.map(member => member.userId);
-    } else if (data.assignedTo) {
-      assignees = [data.assignedTo];
-    }
+    // @typescript-eslint/no-unused-vars
+
+    // TODO: update the assignee to be an array of users in the project schema
+    // let assignees: string[] = [];
+    // if (data.assignToAll) {
+    //   const members = await prisma.projectMember.findMany({
+    //     where: { projectId: data.projectId },
+    //     select: { userId: true }
+    //   });
+    //   assignees = members.map(member => member.userId);
+    // } else if (data.assignedTo) {
+    //   //  @typescript-eslint/no-unused-vars
+    //   assignees = [data.assignedTo];
+    // }
 
     // Create task and assignments
     const task = await prisma.task.create({

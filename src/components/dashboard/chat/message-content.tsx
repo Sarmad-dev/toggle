@@ -1,14 +1,15 @@
 import { File } from "lucide-react";
 import type { ChatMessage } from "@/types/global";
+import Image from "next/image";
 
 export function MessageContent({ message }: { message: ChatMessage }) {
   if (message.fileUrl) {
     if (message.fileType?.startsWith('image/')) {
       return (
         <div className="mt-2">
-          <img 
+          <Image 
             src={message.fileUrl} 
-            alt={message.fileName}
+            alt={message.fileName as string}
             className="max-w-sm rounded-lg"
           />
         </div>

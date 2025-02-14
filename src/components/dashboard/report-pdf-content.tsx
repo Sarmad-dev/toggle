@@ -1,10 +1,11 @@
 import React from 'react';
 import { ReportsList } from "./reports-list";
 import { Bar, Pie, Line } from "react-chartjs-2";
+import { ReportData, ChartData } from '@/types/global';
 
 interface ReportPDFContentProps {
-  reports: any[];
-  chartData: any;
+  reports: ReportData;
+  chartData: ChartData;
   filterType: string;
   chartType: string;
 }
@@ -19,7 +20,7 @@ export function ReportPDFContent({
     <div className="p-8 bg-white">
       <h1 className="text-3xl font-bold mb-6">Time Tracking Report</h1>
       <div className="mb-8">
-        <ReportsList reports={reports} />
+        <ReportsList data={reports} />
       </div>
       
       {chartData && (

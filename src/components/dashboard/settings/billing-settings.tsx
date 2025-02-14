@@ -76,6 +76,7 @@ export function BillingSettings() {
       const portalUrl = await createCustomerPortal(user.id);
       window.location.href = portalUrl;
     } catch (error) {
+      console.error("Failed to open customer portal: ", error)
       toast.error("Failed to open customer portal");
     } finally {
       setIsLoading(false);

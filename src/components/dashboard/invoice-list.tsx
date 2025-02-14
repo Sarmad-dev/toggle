@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, Edit, CheckCircle2 } from "lucide-react";
+import { Download, Edit } from "lucide-react";
 import { EditInvoice } from "./edit-invoice";
 import { useState } from "react";
 import { downloadInvoicePDF } from "@/lib/pdf-generator";
@@ -23,19 +23,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { Invoice } from "@prisma/client";
+import { InvoiceStatus } from "@/types/global";
 
 interface InvoiceListProps {
-  invoices: any[];
+  invoices: Invoice[];
 }
 
 export function InvoiceList({ invoices }: InvoiceListProps) {
-  const [editingInvoice, setEditingInvoice] = useState<any>(null);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   const handleStatusChange = async (invoiceId: string, status: string) => {
     try {
-      await updateInvoiceStatus(invoiceId, status as any);
+      await updateInvoiceStatus(invoiceId, status as InvoiceStatus);
       toast.success("Invoice status updated");
     } catch (error) {
+      console.error("Error updating invoice status: ", error)
       toast.error("Failed to update invoice status");
     }
   };
@@ -99,7 +102,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
       </Table>
 
       <EditInvoice
-        invoice={editingInvoice}
+        invoice={editingInvoice as Invoice}
         open={!!editingInvoice}
         onOpenChange={(open) => !open && setEditingInvoice(null)}
       />

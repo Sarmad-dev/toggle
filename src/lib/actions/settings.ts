@@ -19,6 +19,7 @@ export async function updateProfile(userId: string, data: {
     revalidatePath("/dashboard/settings");
     return { success: true, data: user };
   } catch (error) {
+    console.error("Failed to update profile: ", error)
     return { success: false, error: "Failed to update profile" };
   }
 }
@@ -46,6 +47,7 @@ export async function updateNotificationPreferences(userId: string, data: {
     revalidatePath("/dashboard/settings");
     return { success: true, data: user };
   } catch (error) {
+    console.error("Failed to update notification preferences: ", error)
     return { success: false, error: "Failed to update notification preferences" };
   }
 }
@@ -69,6 +71,7 @@ export async function updateSubscription(userId: string, plan: "FREE" | "BASIC" 
     revalidatePath("/dashboard/settings");
     return { success: true, data: subscription };
   } catch (error) {
+    console.error("Failed to update subscription: ", error)
     return { success: false, error: "Failed to update subscription" };
   }
 } 

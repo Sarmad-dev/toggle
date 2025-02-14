@@ -1,11 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { getAllProjects, getAllTeams } from "@/lib/actions/reports";
 import { Spinner } from "@/components/ui/spinner";
-import { ChartBar, ChartPie, ChartLine } from "lucide-react";
 
 interface ReportsFilterProps {
   onFilterChange: (filter: {
@@ -16,9 +21,13 @@ interface ReportsFilterProps {
 }
 
 export function ReportsFilter({ onFilterChange }: ReportsFilterProps) {
-  const [filterType, setFilterType] = useState<"projects" | "teams" | "billable">("billable");
+  const [filterType, setFilterType] = useState<
+    "projects" | "teams" | "billable"
+  >("billable");
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
-  const [chartType, setChartType] = useState<"bar" | "pie" | "line" | "area">("bar");
+  const [chartType, setChartType] = useState<"bar" | "pie" | "line" | "area">(
+    "bar"
+  );
 
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ["all-projects"],
@@ -39,7 +48,12 @@ export function ReportsFilter({ onFilterChange }: ReportsFilterProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Select value={filterType} onValueChange={(value) => setFilterType(value as any)}>
+      <Select
+        value={filterType}
+        onValueChange={(value) =>
+          setFilterType(value as "projects" | "teams" | "billable")
+        }
+      >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Select Report Type" />
         </SelectTrigger>
@@ -63,11 +77,13 @@ export function ReportsFilter({ onFilterChange }: ReportsFilterProps) {
             <SelectValue placeholder={`Select a ${filterType.slice(0, -1)}`} />
           </SelectTrigger>
           <SelectContent>
-            {(filterType === "projects" ? projects?.data : teams?.data)?.map((item: any) => (
-              <SelectItem key={item.id} value={item.id}>
-                {item.name}
-              </SelectItem>
-            ))}
+            {(filterType === "projects" ? projects?.data : teams?.data)?.map(
+              (item: { name: string; id: string }) => (
+                <SelectItem key={item.id} value={item.id}>
+                  {item.name}
+                </SelectItem>
+              )
+            )}
           </SelectContent>
         </Select>
       )}
@@ -77,7 +93,12 @@ export function ReportsFilter({ onFilterChange }: ReportsFilterProps) {
         <Spinner />
       ) : null}
 
-      <Select value={chartType} onValueChange={(value) => setChartType(value as any)}>
+      <Select
+        value={chartType}
+        onValueChange={(value) =>
+          setChartType(value as "area" | "line" | "bar" | "pie")
+        }
+      >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Select Chart Type" />
         </SelectTrigger>
@@ -90,4 +111,4 @@ export function ReportsFilter({ onFilterChange }: ReportsFilterProps) {
       </Select>
     </div>
   );
-} 
+}

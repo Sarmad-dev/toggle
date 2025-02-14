@@ -37,8 +37,10 @@ export function NotificationSettings() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // TODO: Implement notification settings update
+      console.log("Notification settings updated: ", values)
       toast.success("Notification settings updated");
     } catch (error) {
+      console.error("Failed to update notification settings: ", error)
       toast.error("Something went wrong");
     }
   }

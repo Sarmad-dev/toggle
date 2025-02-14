@@ -9,7 +9,7 @@ export async function createNotification(data: {
   type: NotificationType;
   title: string;
   message: string;
-  data?: any;
+  data?: string;
 }) {
   try {
     const notification = await prisma.notification.create({
@@ -64,6 +64,7 @@ export async function getNotifications(userId: string | undefined) {
     
     return { success: true, data: notifications };
   } catch (error) {
+    console.error("Failed to fetch notifications: ", error)
     throw new Error("Failed to fetch notifications");
   }
 }
@@ -79,6 +80,7 @@ export async function markAsRead(userId: string | undefined) {
     
     return { success: true };
   } catch (error) {
+    console.error("Failed to mark notifications as read: ", error)
     return { success: false, error: "Failed to mark notifications as read" };
   }
 } 

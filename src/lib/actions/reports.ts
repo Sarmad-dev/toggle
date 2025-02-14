@@ -218,6 +218,7 @@ export async function getRevenueStats(userId: string, startDate: Date, endDate: 
       },
     };
   } catch (error) {
+    console.error("Failed to fetch revenue stats: ", error)
     return { success: false, error: "Failed to fetch revenue stats" };
   }
 }

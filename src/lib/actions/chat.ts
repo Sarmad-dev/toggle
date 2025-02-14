@@ -71,6 +71,7 @@ export async function getProjectMessages(projectId: string) {
 
     return { success: true, data: messages };
   } catch (error) {
+    console.error("Failed to fetch messages: ", error)
     return { success: false, error: "Failed to fetch messages" };
   }
 } 

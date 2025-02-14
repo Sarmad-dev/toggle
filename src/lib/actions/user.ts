@@ -9,6 +9,7 @@ export const getUsers = async () => {
 
     return users;
   } catch (error) {
+    console.error("Failed to fetch users: ", error)
     throw new Error("Failed to fetch users");
   }
 };
@@ -31,6 +32,7 @@ export const getUser = async () => {
     return user
 
   } catch (error) {
+    console.error("Failed to fetch user: ", error)
     if (error instanceof Error) throw new Error(error.message)
   }
 }

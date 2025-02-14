@@ -26,7 +26,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { updateProject } from "@/lib/actions/projects";
 import { useQuery } from "@tanstack/react-query";
-import { getManagerTeams, getTeams } from "@/lib/actions/teams";
+import { getManagerTeams } from "@/lib/actions/teams";
 import { useUser } from "@/hooks/use-user";
 import { Loader2 } from "lucide-react";
 
@@ -40,7 +40,7 @@ const formSchema = z.object({
 });
 
 interface ProjectSettingsFormProps {
-  project: any;
+  project: { id: string } & z.infer<typeof formSchema>;
 }
 
 export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
@@ -71,10 +71,13 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
       await updateProject(project.id, {
         ...values,
         teamId: values.teamId === "none" ? null : values.teamId,
-        billableAmount: values.billableAmount ? parseFloat(values.billableAmount) : undefined,
+        billableAmount: values.billableAmount
+          ? parseFloat(values.billableAmount)
+          : undefined,
       });
       toast.success("Project settings updated");
     } catch (error) {
+      console.error("Failed to update project settings: ", error)
       toast.error("Failed to update project settings");
     } finally {
       setIsSubmitting(false);
@@ -130,7 +133,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="none">No Team</SelectItem>
-                    {teamsData?.data?.map((team: any) => (
+                    {teamsData?.data?.map((team) => (
                       <SelectItem key={team.id} value={team.id}>
                         {team.name}
                       </SelectItem>
@@ -201,10 +204,10 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
               Saving...
             </>
           ) : (
-            'Save Changes'
+            "Save Changes"
           )}
         </Button>
       </form>
     </Form>
   );
-} 
+}

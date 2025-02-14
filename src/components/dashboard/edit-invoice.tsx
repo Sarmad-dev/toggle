@@ -22,6 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { updateInvoice } from "@/lib/actions/invoices";
+import { Invoice } from "@prisma/client";
 
 const formSchema = z.object({
   dueDate: z.string(),
@@ -29,7 +30,7 @@ const formSchema = z.object({
 });
 
 interface EditInvoiceProps {
-  invoice: any;
+  invoice: Invoice;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -54,6 +55,7 @@ export function EditInvoice({ invoice, open, onOpenChange }: EditInvoiceProps) {
       toast.success("Invoice updated successfully");
       onOpenChange(false);
     } catch (error) {
+      console.error("Error updating invoice: ", error)
       toast.error("Failed to update invoice");
     } finally {
       setIsSubmitting(false);

@@ -99,6 +99,7 @@ export function CreateProject() {
       setOpen(false);
       form.reset();
     } catch (error) {
+      console.error("Error creating project: ", error)
       toast.error("Failed to create project");
     }
   }

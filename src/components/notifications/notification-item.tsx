@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { handleTeamInvitation } from "@/lib/actions/teams";
-import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface NotificationItemProps {
@@ -17,7 +16,7 @@ interface NotificationItemProps {
   message: string;
   createdAt?: Date;
   read: boolean;
-  data: any;
+  data: string;
   userId: string;
 }
 
@@ -31,10 +30,10 @@ export function NotificationItem({
   userId,
   createdAt
 }: NotificationItemProps) {
-  const [loading, setLoading] = useState(false)
+
   const queryClient = useQueryClient()
 
-  const { mutateAsync } = useMutation({
+  const { mutateAsync, isPending: loading } = useMutation({
     mutationKey: ["handle-invitation"],
     mutationFn: async (status: "ACCEPTED" | "DECLINED") => {
       if (type === "PROJECT_INVITATION") {
@@ -45,10 +44,10 @@ export function NotificationItem({
         });
       } else if (type === "TEAM_INVITATION") {
         // Handle team invitation
-        const response = await handleTeamInvitation(data, status, id)
+        await handleTeamInvitation(data, status, id)
       }
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success(`Invitation ${status.toLowerCase()}`)
       queryClient.invalidateQueries({ queryKey: ["notifications"]})
     },

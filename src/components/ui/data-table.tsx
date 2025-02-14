@@ -67,9 +67,9 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((acc, part) => acc?.[part], obj);
-  };
+  // const getNestedValue = (obj: any, path: string) => {
+  //   return path.split('.').reduce((acc, part) => acc?.[part], obj);
+  // };
 
   const isFiltered = table.getState().columnFilters.length > 0;
   const filteredRows = table.getFilteredRowModel().rows;

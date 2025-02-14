@@ -4,9 +4,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
-import { MenuIcon, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { DashboardNav } from "@/components/dashboard/nav";
-import { UserNav } from "@/components/dashboard/user-nav";
 import { Timer } from "@/components/dashboard/timer";
 import { Header } from "@/components/dashboard/header";
 
@@ -16,7 +15,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
 
   return (
     <div className={cn(

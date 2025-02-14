@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import Link from "next/link";
 import { ProjectDescription } from "./project-description";
 

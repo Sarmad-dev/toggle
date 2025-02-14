@@ -16,22 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { format, subMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
-
-interface TimeEntry {
-  date: string;
-  hours: number;
-}
+import { ReportData } from "@/types/global";
 
 interface ReportsListProps {
-  data: {
-    totalHours: number;
-    totalEarnings: number;
-    activeProjects: number;
-    timeEntries: TimeEntry[];
-    totalMembers: number;
-  };
+  data: ReportData
 }
 
 export function ReportsList({ data }: ReportsListProps) {

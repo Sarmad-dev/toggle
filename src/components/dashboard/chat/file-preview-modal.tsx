@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { FileText, FileSpreadsheet, Presentation, File } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface FilePreviewModalProps {
   isOpen: boolean;
@@ -37,7 +38,7 @@ export function FilePreviewModal({ isOpen, onClose, file }: FilePreviewModalProp
         <DialogDescription className="hidden"></DialogDescription>
         {isImage ? (
           <div className="relative">
-            <img 
+            <Image
               src={file.url} 
               alt={file.name}
               className="w-full h-auto rounded-lg"

@@ -93,6 +93,7 @@ export async function getProjects(userId: string) {
 
     return { success: true, data: projects };
   } catch (error) {
+    console.error("Failed to fetch projects: ", error)
     return { success: false, error: "Failed to fetch projects" };
   }
 }
@@ -125,6 +126,7 @@ export async function getProject(projectId: string) {
 
     return { success: true, data: project };
   } catch (error) {
+    console.error("Failed to fetch project: ", error)
     return { success: false, error: "Failed to fetch project" };
   }
 }
@@ -148,6 +150,7 @@ export async function getProjectMembers(projectId: string) {
       data: members.map(m => ({ id: m.userId, username: m.user.username })) 
     };
   } catch (error) {
+    console.error("Failed to fetch project members: ", error)
     return { success: false, error: "Failed to fetch project members" };
   }
 }

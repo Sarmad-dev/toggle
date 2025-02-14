@@ -34,6 +34,7 @@ export function UserNav() {
       router.push("/auth/sign-in");
       toast.success("Logged out successfully");
     } catch (error) {
+      console.error("Failed to log out: ", error)
       toast.error("Failed to log out");
     }
   };
