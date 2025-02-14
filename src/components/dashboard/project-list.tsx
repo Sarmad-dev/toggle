@@ -51,6 +51,7 @@ export function ProjectList() {
     queryKey: ["projects"],
     queryFn: () => getProjects(user?.id),
     enabled: !!user,
+    initialData: { success: true, data: [] }
   });
 
   const formatDuration = (totalSeconds: number) => {
