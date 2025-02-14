@@ -1,7 +1,22 @@
+"use client";
+
 import { ProjectList } from "@/components/dashboard/project-list";
 import { CreateProject } from "@/components/dashboard/create-project";
 
 export default function ProjectsPage() {
+  // const { user } = useUser();
+  
+  // const { data: projects, isLoading } = useQuery({
+  //   queryKey: ["projects"],
+  //   queryFn: () => getProjects(user?.id),
+  //   enabled: !!user,
+  //   initialData: { success: true, data: [] },
+  // });
+
+  // if (isLoading) {
+  //   return <Spinner />;
+  // }
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
