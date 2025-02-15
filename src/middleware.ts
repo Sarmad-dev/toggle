@@ -16,9 +16,9 @@ export const config = {
      * - /api/auth/signin
      * - /api/auth/forgot-password
      * - /api/auth/reset-password
-     * - /
+     * - /api/webhooks/lemon-squeezy
      * Feel free to modify this pattern to include more paths.
      */
-    '/((?!_next/static|_next/image|favicon.ico|api/auth/signup|api/auth/signin|api/auth/forgot-password|api/auth/reset-password|/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/auth/signup|api/auth/signin|api/auth/forgot-password|api/auth/reset-password|api/webhooks/lemon-squeezy/).*)',
   ],
 }
