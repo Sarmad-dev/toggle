@@ -9,15 +9,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { NotificationItem } from "./notification-item";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getNotifications } from "@/lib/actions/notifications";
-import { useEffect } from "react";
-import { useSocket } from "@/hooks/use-socket";
+import { getNotifications, markAsRead } from "@/lib/actions/notifications";
 import { useUser } from "@/hooks/use-user";
 
 export function NotificationDropdown() {
   const { user } = useUser();
   const queryClient = useQueryClient();
-  const { socket } = useSocket();
 
   const { data: notifications } = useQuery({
     queryKey: ["notifications"],
@@ -25,28 +22,14 @@ export function NotificationDropdown() {
     enabled: !!user,
   });
 
-  useEffect(() => {
-    if (socket && user) {
-      socket.emit("join-user", user.id);
-      
-      socket.on("new-notification", () => {
-        queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      });
-    }
-
-    return () => {
-      if (socket) {
-        socket.off("new-notification");
-      }
-    };
-  }, [socket, user, queryClient]);
-
   const unreadCount = notifications?.data?.filter(n => !n.read).length || 0;
 
-  // const handleAction = async () => {
-  //   await markAsRead(user?.id);
-  //   queryClient.invalidateQueries({ queryKey: ["notifications"] });
-  // };
+  // TODO: Add realtime notifications and update the mark as read functionality
+
+  const handleAction = async () => {
+    await markAsRead(user?.id);
+    queryClient.invalidateQueries({ queryKey: ["notifications"] });
+  };
 
   return (
     <DropdownMenu>
@@ -77,6 +60,7 @@ export function NotificationDropdown() {
               data={notification.data as string}
               userId={notification.userId}
               createdAt={notification.createdAt}
+              handleMarkAsRead={handleAction}
             />
           ))
         )}

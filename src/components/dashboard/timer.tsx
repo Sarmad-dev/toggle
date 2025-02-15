@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Play, Square } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatTime } from "@/lib/utils";
 import { useTimerStore } from "@/stores/use-timer-store";
 import {
   Command,
@@ -28,12 +27,10 @@ export function Timer() {
   const [open, setOpen] = useState(false);
   const {
     isRunning,
-    description,
     duration,
     selectedProjectId,
     start,
     stop,
-    setDescription,
     setSelectedProject,
     tick,
   } = useTimerStore();
@@ -54,15 +51,6 @@ export function Timer() {
     return () => clearInterval(interval);
   }, [isRunning, tick]);
 
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h.toString().padStart(2, "0")}:${m
-      .toString()
-      .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
-
   const selectedProject = projects?.data?.find(
     (project) => project.id === selectedProjectId
   );
@@ -72,12 +60,9 @@ export function Timer() {
       <div className="flex items-center gap-2">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Input
-              placeholder="What are you working on?"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="flex-1"
-            />
+            <Button variant="outline" className="flex-1">
+              Select Project
+            </Button>
           </PopoverTrigger>
           <PopoverContent className="p-0" align="start">
             <Command>
@@ -128,7 +113,9 @@ export function Timer() {
           Project: {selectedProject.name}
         </div>
       )}
-      <div className="text-2xl font-mono text-center">{formatTime(duration)}</div>
+      <div className="text-2xl font-mono text-center">
+        {formatTime(duration)}
+      </div>
     </div>
   );
-} 
+}

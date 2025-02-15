@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notifications";
+import { checkSubscriptionLimit } from "../subscription";
+import { getUser } from "./user";
 
 export async function updateTaskStatus(taskId: string, status: string) {
   try {
@@ -59,6 +61,14 @@ export async function createTask(data: {
   dueDate?: string;
 }) {
   try {
+    const user = await getUser()
+    const subscriptionCheck = await checkSubscriptionLimit(user?.id as string, 'tasks', data.projectId);
+    if (!subscriptionCheck.allowed) {
+      return { 
+        success: false, 
+        error: subscriptionCheck.message + ". Please upgrade to Pro to create more projects." 
+      };
+    }
     // If assignToAll is true, get all project members
     // @typescript-eslint/no-unused-vars
 

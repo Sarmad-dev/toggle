@@ -1,25 +1,11 @@
 /* eslint no-var: 0 */
-import { Server } from "socket.io";
 import {
   NotificationType as PrismaNotificationType,
-  Project,
+  Project as PrismaProject,
+  TaskPriority,
   Team,
   User,
 } from "@prisma/client";
-
-declare global {
-  let socketIO: Server | undefined;
-
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace NodeJS {
-    interface Global {
-      socketIO: Server | undefined;
-    }
-  }
-
-  var io: import("socket.io").Server;
-  var httpServer: import("http").Server;
-}
 
 export type NotificationType = PrismaNotificationType;
 
@@ -193,7 +179,7 @@ export interface ChartOptions {
 
 export type TeamList = Team & {
   members: { user: User }[];
-  projects: Project[];
+  projects: PrismaProject[];
 };
 
 export interface ProjectWithDetails {
@@ -219,4 +205,55 @@ export interface ProjectWithDetails {
     members: number;
     timeEntries: number;
   };
+}
+
+export interface TimeEntryColumn {
+  id: string;
+  startTime: Date;
+  endTime: Date | null;
+  duration: number | null;
+  project: {
+    id: string;
+    name: string;
+    color: string | null;
+  } | null;
+  billable: boolean;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  color: string | null;
+  client: { 
+    id: string;
+    name: string;
+  } | null;
+  _count: {
+    tasks: number;
+    timeEntries: number;
+    members: number;
+  };
+  userId: string;
+  billable: boolean;
+  team: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+export interface Task {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  dueDate: Date | null;
+  priority: TaskPriority;
+  projectId: string;
+  assignedTo: string | null;
+  assignedToAll: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    username: string;
+  } | null;
 }

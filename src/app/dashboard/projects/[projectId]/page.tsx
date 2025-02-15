@@ -42,41 +42,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
       </div>
 
       <ProjectTabs project={project} />
-
-      {/* Add more project details sections here */}
-
-      {/* <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight">Tasks</h2>
-          {project?.managerId === user?.id && (
-            <CreateTask
-              projectId={projectId}
-              managerId={project?.managerId as string}
-            />
-          )}
-        </div>
-        <TaskList projectId={projectId} />
-      </div>
-
-      <ProjectMembers
-        projectId={projectId}
-        managerId={project?.managerId as string}
-        members={project?.members}
-      />
-
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold tracking-tight">Project Chat</h2>
-        <ProjectChat
-          projectId={projectId}
-          members={
-            project?.members?.map((member) => ({
-              id: member.user.id,
-              username: member.user.username,
-              image: member.user.image || undefined,
-            })) || []
-          }
-        />
-      </div> */}
     </div>
   );
 }

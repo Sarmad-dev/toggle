@@ -4,16 +4,16 @@ export const SUBSCRIPTION_LIMITS = {
   FREE: {
     maxProjects: 2,
     maxMembersPerProject: 5,
-    maxTimeEntriesPerProject: 5,
+    maxTasksPerProject: 5,
   },
   PRO: {
     maxProjects: Infinity,
     maxMembersPerProject: Infinity,
-    maxTimeEntriesPerProject: Infinity,
+    maxTasksPerProject: Infinity,
   },
 };
 
-export async function checkSubscriptionLimit(userId: string, type: 'projects' | 'members' | 'timeEntries', projectId?: string) {
+export async function checkSubscriptionLimit(userId: string, type: 'projects' | 'members' | 'tasks', projectId?: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
@@ -49,15 +49,15 @@ export async function checkSubscriptionLimit(userId: string, type: 'projects' | 
       }
       break;
 
-    case 'timeEntries':
+    case 'tasks':
       if (projectId) {
-        const timeEntryCount = await prisma.timeEntry.count({
+        const tasks = await prisma.task.count({
           where: { projectId },
         });
-        if (timeEntryCount >= limits.maxTimeEntriesPerProject) {
+        if (tasks >= limits.maxTasksPerProject) {
           return {
             allowed: false,
-            message: 'You have reached the maximum number of time entries for this project',
+            message: 'You have reached the maximum number of tasks for this project',
           };
         }
       }

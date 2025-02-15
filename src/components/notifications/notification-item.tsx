@@ -18,6 +18,7 @@ interface NotificationItemProps {
   read: boolean;
   data: string;
   userId: string;
+  handleMarkAsRead: () => Promise<void>
 }
 
 export function NotificationItem({
@@ -28,7 +29,8 @@ export function NotificationItem({
   read,
   data,
   userId,
-  createdAt
+  createdAt,
+  handleMarkAsRead
 }: NotificationItemProps) {
 
   const queryClient = useQueryClient()
@@ -68,6 +70,7 @@ export function NotificationItem({
         <span className="text-xs text-muted-foreground">
           {formatDistanceToNow(new Date(createdAt!), { addSuffix: true })}
         </span>
+        <span className="text-xs text-muted-foreground hover:underline cursor-pointer" onClick={() => handleMarkAsRead()}>mark as read</span>
       </div>
       <p className="text-sm text-muted-foreground mb-2">{message}</p>
       {(type === "PROJECT_INVITATION" || type === "TEAM_INVITATION") && !read && (

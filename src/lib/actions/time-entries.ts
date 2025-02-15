@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { checkSubscriptionLimit } from "@/lib/subscription";
 
 export async function createTimeEntry(data: {
   description: string;
@@ -12,18 +11,6 @@ export async function createTimeEntry(data: {
   projectId: string;
   userId: string;
 }) {
-  const subscriptionCheck = await checkSubscriptionLimit(
-    data.userId, 
-    'timeEntries',
-    data.projectId
-  );
-  if (!subscriptionCheck.allowed) {
-    return { 
-      success: false, 
-      error: subscriptionCheck.message + ". Please upgrade to Pro for unlimited time entries." 
-    };
-  }
-
   try {
     const timeEntry = await prisma.timeEntry.create({
       data: {

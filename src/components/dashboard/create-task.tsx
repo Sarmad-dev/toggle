@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,7 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createTask } from "@/lib/actions/tasks";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useUser } from "@/hooks/use-user";
 import { Plus, Loader2 } from "lucide-react";
@@ -35,10 +35,15 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "../ui/textarea";
+import { getProjectMembers } from "@/lib/actions/projects";
 
 const formSchema = z.object({
   name: z.string().min(2, "Title must be at least 2 characters"),
@@ -56,12 +61,19 @@ interface CreateTaskProps {
 
 export function CreateTask({ projectId, managerId }: CreateTaskProps) {
   const [open, setOpen] = useState(false);
-  const [members, setMembers] = useState<
-    Array<{ id: string; username: string }>
-  >([]);
-  const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useUser();
+
+  const { data: members, isLoading: isLoadingMembers } = useQuery({
+    queryKey: ["members", projectId],
+    queryFn: async () => {
+      const result = await getProjectMembers(projectId);
+      if (!result.success) {
+        toast.error(result.error);
+      }
+      return result.data;
+    },
+  });
 
   // Check if current user is manager
   const canCreateTasks = user?.id === managerId;
@@ -78,48 +90,33 @@ export function CreateTask({ projectId, managerId }: CreateTaskProps) {
     },
   });
 
-  // Fetch project members
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const response = await fetch(`/api/projects/${projectId}/members`);
-        const data = await response.json();
-        if (data.success) {
-          setMembers(data.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch members:", error);
-      }
-    };
-
-    if (open) {
-      fetchMembers();
-    }
-  }, [projectId, open]);
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setIsLoading(true);
+  const { mutateAsync, isPending } = useMutation({
+    mutationKey: ["create-task"],
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
       const result = await createTask({
         ...values,
         dueDate: values.dueDate?.toISOString(),
         projectId,
       });
 
-      if (!result.success) {
-        throw new Error(result.error);
-      }
-
+      return result;
+    },
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
-      toast.success("Task created successfully");
+      if (!data.success) {
+        toast.error(data.error);
+      } else {
+        toast.success("Task created successfully");
+      }
       setOpen(false);
-      form.reset();
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to create task");
-    } finally {
-      setIsLoading(false);
-    }
+    },
+    onError: (error) => {
+      toast.error(`Failed to create task: ${error.message}`);
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    await mutateAsync(values);
   };
 
   const handleClick = () => {
@@ -244,11 +241,17 @@ export function CreateTask({ projectId, managerId }: CreateTaskProps) {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {members.map((member) => (
-                            <SelectItem key={member.id} value={member.id}>
-                              {member.username}
-                            </SelectItem>
-                          ))}
+                          {isLoadingMembers ? (
+                            <span className="mr-2 text-muted-foreground text-xs">
+                              Loading Members...
+                            </span>
+                          ) : (
+                            members?.map((member) => (
+                              <SelectItem key={member.id} value={member.id}>
+                                {member.username}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -278,8 +281,8 @@ export function CreateTask({ projectId, managerId }: CreateTaskProps) {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating...
