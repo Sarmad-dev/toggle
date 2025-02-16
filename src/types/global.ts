@@ -9,6 +9,17 @@ import {
 
 export type NotificationType = PrismaNotificationType;
 
+declare global {
+  interface Window {
+    createLemonSqueezy?: () => void;
+    LemonSqueezy: {
+      Url: {
+        Open: (url: string) => void
+      }
+    }
+  }
+}
+
 export interface ChatMessage {
   id: string;
   content: string;

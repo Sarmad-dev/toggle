@@ -6,6 +6,7 @@ import { NotificationSettings } from "@/components/dashboard/settings/notificati
 export default function SettingsPage() {
   return (
     <div className="space-y-8">
+      <script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
         <p className="text-muted-foreground">Manage your account settings</p>

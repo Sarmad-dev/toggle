@@ -10,9 +10,6 @@ export async function createCheckout(userId: string, email: string) {
     throw new Error('Missing LemonSqueezy configuration');
   }
 
-  console.log('Store ID:', LEMON_SQUEEZY_STORE_ID);
-  console.log('Variant ID:', PRO_SUBSCRIPTION_VARIANT_ID);
-
   const response = await fetch(`${LEMON_SQUEEZY_API_URL}/checkouts`, {
     method: 'POST',
     headers: {
@@ -25,7 +22,8 @@ export async function createCheckout(userId: string, email: string) {
         type: 'checkouts',
         attributes: {
           product_options: {
-            enabled_variants: [`${PRO_SUBSCRIPTION_VARIANT_ID}`]
+            enabled_variants: [`${PRO_SUBSCRIPTION_VARIANT_ID}`],
+            redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings`,
           },
           checkout_data: {
             custom: { userId },

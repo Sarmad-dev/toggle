@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import Script from "next/script";
 import {
   Card,
   CardContent,
@@ -14,40 +15,12 @@ import { CreditCard, Package, Loader2 } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { createCheckout, createCustomerPortal } from "@/lib/lemon-squeezy";
 import { useState } from "react";
-
-const plans = [
-  {
-    name: "Free",
-    description: "For individuals and small teams",
-    features: [
-      "Up to 2 projects",
-      "5 members per project",
-      "5 time entries per project",
-      "Basic reporting"
-    ],
-    price: "$0",
-    interval: "month",
-  },
-  {
-    name: "Pro",
-    description: "For growing businesses",
-    features: [
-      "Unlimited projects",
-      "Unlimited members per project",
-      "Unlimited time entries",
-      "Advanced analytics & reporting",
-      "Client management",
-      "Custom invoicing",
-      "Priority support"
-    ],
-    price: "$15",
-    interval: "month",
-  },
-];
+import { plans } from "@/lib/constants";
 
 export function BillingSettings() {
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
   const handleUpgrade = async () => {
     setIsLoading(true);
@@ -61,7 +34,13 @@ export function BillingSettings() {
         throw new Error('No checkout URL received');
       }
 
-      window.location.href = checkoutUrl;
+      if (!isScriptLoaded) {
+        window.location.href = checkoutUrl;
+        return;
+      }
+
+      window.LemonSqueezy.Url.Open(checkoutUrl);
+
     } catch (error) {
       console.error('Upgrade error:', error);
       toast.error(error instanceof Error ? error.message : "Failed to create checkout session");
@@ -85,6 +64,10 @@ export function BillingSettings() {
 
   return (
     <div className="space-y-6">
+      <Script 
+        src="https://app.lemonsqueezy.com/js/lemon.js"
+        onLoad={() => setIsScriptLoaded(true)}
+      />
       <div>
         <h3 className="text-lg font-medium">Billing and Plans</h3>
         <p className="text-sm text-muted-foreground">
