@@ -20,3 +20,15 @@ export const formatDuration = (seconds: number | null) => {
   const minutes = Math.floor((seconds % 3600) / 60);
   return `${hours}h ${minutes}m`;
 };
+
+export function addOneMonthClamped(date: Date) {
+  const newDate = new Date(date);
+  const originalDate = newDate.getDate(); // Save original day
+  newDate.setMonth(newDate.getMonth() + 1); // Add 1 month
+  
+  // Check if the day changed due to month overflow
+  if (newDate.getDate() !== originalDate) {
+    newDate.setDate(0); // Set to last day of the previous month (target month)
+  }
+  return newDate;
+}

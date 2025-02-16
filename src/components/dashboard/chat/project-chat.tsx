@@ -188,7 +188,7 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
     };
 
     if (isLoadingMessages) {
-      return <Spinner />
+      return <Spinner />;
     }
 
     return (
@@ -252,11 +252,14 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
             {message.fileUrl && (
               <div className="mt-2 relative">
                 {message.fileType?.startsWith("image/") ? (
-                  <Image
-                    src={message.fileUrl}
-                    alt={message.fileName || "Attached image"}
-                    className="max-h-48 w-full object-cover rounded-md cursor-pointer"
-                    fill
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      maxWidth: "600px",
+                      margin: "auto",
+                    }}
+                    className="cursor-pointer"
                     onClick={() =>
                       setPreviewFile({
                         url: message.fileUrl!,
@@ -264,7 +267,17 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
                         name: message.fileName || "Attached image",
                       })
                     }
-                  />
+                  >
+                    <Image
+                      src={message.fileUrl} // URL of the image from Supabase Storage
+                      alt={message.fileName || "Attached image"} // Alt text for accessibility
+                      layout="responsive" // Ensures the image maintains its aspect ratio
+                      width={16} // Placeholder value (will be overridden by intrinsic size)
+                      height={9} // Placeholder value (will be overridden by intrinsic size)
+                      objectFit="cover" // Ensures the image covers the container without distortion
+                      priority={false} // Optional: Set to true if the image is above the fold
+                    />
+                  </div>
                 ) : (
                   <div
                     onClick={() =>
@@ -377,13 +390,25 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
                     </Button>
                   </div>
                   {file.preview && (
-                    <Image
-                      src={file.preview}
-                      alt="Preview"
-                      className="mt-2 h-32 w-full rounded-md object-cover"
-                      width={16}
-                      height={9}
-                    />
+                    <div
+                      style={{
+                        position: "relative",
+                        width: "100%",
+                        maxWidth: "600px",
+                        margin: "auto",
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <Image
+                        src={file.preview} // URL of the image from Supabase Storage
+                        alt={"Preview"} // Alt text for accessibility
+                        layout="responsive" // Ensures the image maintains its aspect ratio
+                        width={16} // Placeholder value (will be overridden by intrinsic size)
+                        height={9} // Placeholder value (will be overridden by intrinsic size)
+                        objectFit="cover" // Ensures the image covers the container without distortion
+                        priority={false} // Optional: Set to true if the image is above the fold
+                      />
+                    </div>
                   )}
                 </div>
               ))}

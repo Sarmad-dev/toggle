@@ -4,7 +4,7 @@ import {
   Project as PrismaProject,
   TaskPriority,
   Team,
-  User,
+  User as PrismaUser,
 } from "@prisma/client";
 
 export type NotificationType = PrismaNotificationType;
@@ -189,7 +189,7 @@ export interface ChartOptions {
 }
 
 export type TeamList = Team & {
-  members: { user: User }[];
+  members: { user: PrismaUser }[];
   projects: PrismaProject[];
 };
 
@@ -267,4 +267,19 @@ export interface Task {
   user: {
     username: string;
   } | null;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  plan: "FREE" | "PRO";
+  lemonSqueezySubscriptionId: string | null;
+  lemonSqueezyCustomerId: string | null;
+  subscription?: {
+    status: string;
+    currentPeriodEnd: string;
+    cancelAtPeriodEnd: boolean;
+    createdAt: string;
+  };
 }

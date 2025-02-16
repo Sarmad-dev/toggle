@@ -1,3 +1,4 @@
+"use server"
 import { prisma } from "./prisma";
 
 const LEMON_SQUEEZY_API_KEY = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_API_KEY;
@@ -72,18 +73,46 @@ export async function createCustomerPortal(userId: string) {
     throw new Error('No subscription found');
   }
 
-  const response = await fetch(`${LEMON_SQUEEZY_API_URL}/customers/${user.lemonSqueezyCustomerId}/portal`, {
-    method: 'POST',
+  const response = await fetch(`${LEMON_SQUEEZY_API_URL}/customers/${user.lemonSqueezyCustomerId}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${LEMON_SQUEEZY_API_KEY}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to create customer portal');
+  }
+
+  const data = await response.json();
+
+  return data.data.attributes.urls.customer_portal;
+}
+
+export async function cancelSubscription(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { lemonSqueezySubscriptionId: true }
+  });
+
+  if (!user?.lemonSqueezySubscriptionId) {
+    throw new Error('No subscription found');
+  }
+
+  const response = await fetch(`${LEMON_SQUEEZY_API_URL}/subscriptions/${user.lemonSqueezySubscriptionId}`, {
+    method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${LEMON_SQUEEZY_API_KEY}`,
       'Content-Type': 'application/json',
     },
   });
 
-  const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.error || 'Failed to create customer portal');
+    const data = await response.json();
+    throw new Error(data.error || 'Failed to cancel subscription');
   }
 
-  return data.data.attributes.url;
+  return await response.json()
 } 

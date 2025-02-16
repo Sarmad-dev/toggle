@@ -3,46 +3,46 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id                  String              @id @default(cuid())
-  email               String              @unique
-  username            String              @unique
-  password            String?
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  image               String?
-  account             Account?
-  subscription        Subscription?
-  organization        Organization?       @relation(fields: [orgId], references: [id])
-  orgId               String?
-  projects            Project[]
-  timeEntries         TimeEntry[]
-  tasks               Task[]
-  clients             Client[]
-  teams               TeamMember[]
-  role                UserRole            @default(USER)
-  preferences         Json? // For storing user preferences like theme, notifications, etc.
-  lastActive          DateTime?
-  stripeId            String?             @unique // For payment processing
-  managedProjects     Project[]           @relation("ManagedProjects")
-  projectMemberships  ProjectMember[]
-  notifications       Notification[]
-  sentInvitations     ProjectInvitation[] @relation("invitedByUser")
-  receivedInvitations ProjectInvitation[] @relation("invitedUser")
-  chatMessages        ChatMessage[]
-  leadingTeams        Team[]              @relation("TeamLeader")
-  managerTeams        Team[]              @relation("TeamManager")
-  teamInvitations     TeamInvitation[]    @relation("TeamInvitedUser")
-  sentTeamInvites     TeamInvitation[]    @relation("TeamInvitedByUser")
-  invoices            Invoice[]
-  plan                String              @default("FREE") // FREE or PRO
-  lemonSqueezyCustomerId String?
-  lemonSqueezySubscriptionId String?      @unique
+  id                         String              @id @default(cuid())
+  email                      String              @unique
+  username                   String              @unique
+  password                   String?
+  createdAt                  DateTime            @default(now())
+  updatedAt                  DateTime            @updatedAt
+  image                      String?
+  account                    Account?
+  subscription               Subscription?
+  organization               Organization?       @relation(fields: [orgId], references: [id])
+  orgId                      String?
+  projects                   Project[]
+  timeEntries                TimeEntry[]
+  tasks                      Task[]
+  clients                    Client[]
+  teams                      TeamMember[]
+  role                       UserRole            @default(USER)
+  preferences                Json? // For storing user preferences like theme, notifications, etc.
+  lastActive                 DateTime?
+  stripeId                   String?             @unique // For payment processing
+  managedProjects            Project[]           @relation("ManagedProjects")
+  projectMemberships         ProjectMember[]
+  notifications              Notification[]
+  sentInvitations            ProjectInvitation[] @relation("invitedByUser")
+  receivedInvitations        ProjectInvitation[] @relation("invitedUser")
+  chatMessages               ChatMessage[]
+  leadingTeams               Team[]              @relation("TeamLeader")
+  managerTeams               Team[]              @relation("TeamManager")
+  teamInvitations            TeamInvitation[]    @relation("TeamInvitedUser")
+  sentTeamInvites            TeamInvitation[]    @relation("TeamInvitedByUser")
+  invoices                   Invoice[]
+  plan                       String              @default("FREE") // FREE or PRO
+  lemonSqueezyCustomerId     String?
+  lemonSqueezySubscriptionId String?             @unique
 }
 
 enum UserRole {
@@ -76,15 +76,16 @@ model Organization {
 }
 
 model Subscription {
-  id               String             @id @default(cuid())
-  userId           String             @unique
-  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan             SubscriptionPlan
-  status           SubscriptionStatus
-  currentPeriodEnd DateTime
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  lemonSqueezyId   String?            @unique
+  id                String             @id @default(cuid())
+  userId            String             @unique
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan              SubscriptionPlan
+  status            SubscriptionStatus
+  currentPeriodEnd  DateTime?
+  cancelAtPeriodEnd Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  lemonSqueezyId    String?            @unique
 }
 
 enum SubscriptionPlan {
@@ -102,28 +103,28 @@ enum SubscriptionStatus {
 }
 
 model Project {
-  id              String              @id @default(cuid())
-  name            String
-  description     String?
-  color           String?
-  billable        Boolean             @default(false)
-  billableAmount  Float?              // Add billableAmount field
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  client          Client?             @relation(fields: [clientId], references: [id])
-  clientId        String?
-  tasks           Task[]
-  timeEntries     TimeEntry[]
-  members         ProjectMember[]
-  invitations     ProjectInvitation[]
-  managerId       String // The user who manages this project
-  manager         User                @relation("ManagedProjects", fields: [managerId], references: [id])
-  team            Team?               @relation(fields: [teamId], references: [id])
-  teamId          String?
-  tags            Tag[]
-  chatMessages    ChatMessage[]
-  user            User?               @relation(fields: [userId], references: [id])
-  userId          String?
+  id             String              @id @default(cuid())
+  name           String
+  description    String?
+  color          String?
+  billable       Boolean             @default(false)
+  billableAmount Float? // Add billableAmount field
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  client         Client?             @relation(fields: [clientId], references: [id])
+  clientId       String?
+  tasks          Task[]
+  timeEntries    TimeEntry[]
+  members        ProjectMember[]
+  invitations    ProjectInvitation[]
+  managerId      String // The user who manages this project
+  manager        User                @relation("ManagedProjects", fields: [managerId], references: [id])
+  team           Team?               @relation(fields: [teamId], references: [id])
+  teamId         String?
+  tags           Tag[]
+  chatMessages   ChatMessage[]
+  user           User?               @relation(fields: [userId], references: [id])
+  userId         String?
 }
 
 model ProjectMember {
@@ -281,8 +282,8 @@ model Tag {
 }
 
 model Invoice {
-  id          String      @id @default(cuid())
-  number      String      @unique // Invoice number (e.g., INV-2024-001)
+  id          String        @id @default(cuid())
+  number      String        @unique // Invoice number (e.g., INV-2024-001)
   clientName  String
   clientEmail String?
   address     String
@@ -290,10 +291,10 @@ model Invoice {
   status      InvoiceStatus @default(PENDING)
   dueDate     DateTime
   timeEntries TimeEntry[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  userId      String      // The user who created the invoice
-  user        User        @relation(fields: [userId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  userId      String // The user who created the invoice
+  user        User          @relation(fields: [userId], references: [id])
 }
 
 enum InvoiceStatus {

@@ -21,6 +21,17 @@ export async function GET() {
         email: true,
         username: true,
         orgId: true,
+        plan: true,
+        lemonSqueezySubscriptionId: true,
+        lemonSqueezyCustomerId: true,
+        subscription: {
+          select: {
+            status: true,
+            currentPeriodEnd: true,
+            cancelAtPeriodEnd: true,
+            createdAt: true,
+          }
+        }
       },
     });
 

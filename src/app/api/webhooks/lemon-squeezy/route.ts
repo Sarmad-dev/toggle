@@ -10,14 +10,14 @@ export async function POST(req: Request) {
   // Validate inputs
   if (!secret) {
     console.error("Missing webhook secret");
-    return NextResponse.json({ error: "Missing webhook secret" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Missing webhook secret" },
+      { status: 500 }
+    );
   }
 
   const hmac = crypto.createHmac("sha256", secret);
-  const digest = Buffer.from(
-    hmac.update(rawBody).digest("hex"),
-    "utf8"
-  );
+  const digest = Buffer.from(hmac.update(rawBody).digest("hex"), "utf8");
   const signature = Buffer.from(signatureHeader || "", "utf8");
 
   if (!crypto.timingSafeEqual(digest, signature)) {
@@ -34,7 +34,6 @@ export async function POST(req: Request) {
     switch (meta.event_name) {
       case "subscription_created":
       case "subscription_resumed":
-      case "subscription_updated":
         console.log("👤 Updating user:", meta.custom_data.userId);
         await prisma.user.update({
           where: { id: meta.custom_data.userId },
@@ -44,12 +43,26 @@ export async function POST(req: Request) {
             lemonSqueezySubscriptionId: data.id.toString(),
           },
         });
+
+        await prisma.subscription.create({
+          data: {
+            userId: meta.custom_data.userId,
+            plan: "PRO",
+            status: "ACTIVE",
+            currentPeriodEnd:
+              data.attributes.ends_at !== null
+                ? new Date(data.attributes.ends_at)
+                : undefined,
+            lemonSqueezyId: data.id.toString(),
+          },
+        });
         console.log("✅ User updated successfully");
         break;
 
       case "subscription_cancelled":
       case "subscription_paused":
       case "subscription_expired":
+        console.log("👤 Updating user:", meta.custom_data.userId);
         const user = await prisma.user.findUnique({
           where: { lemonSqueezySubscriptionId: data.id },
         });
@@ -65,6 +78,10 @@ export async function POST(req: Request) {
             lemonSqueezySubscriptionId:
               meta.event_name === "subscription_cancelled" ? null : undefined,
           },
+        });
+
+        await prisma.subscription.delete({
+          where: { userId: meta.custome_data.userId },
         });
         break;
     }
