@@ -46,6 +46,7 @@ export interface ChatMessage {
     fileName: string;
     fileType: string;
   }[];
+  status?: "pending" | "delivered";
 }
 
 export interface OnlineUser {
@@ -138,7 +139,7 @@ export type FilterType = {
 export interface Report {
   title: string;
   description: string;
-  value: string;
+  value: string | number;
   icon: React.ComponentType<{ className?: string }>;
 }
 
@@ -273,9 +274,12 @@ export interface User {
   id: string;
   email: string;
   username: string;
+  name: string | null;
+  image: string | null;
   plan: "FREE" | "PRO";
   lemonSqueezySubscriptionId: string | null;
   lemonSqueezyCustomerId: string | null;
+  password?: string;
   subscription?: {
     status: string;
     currentPeriodEnd: string;
@@ -283,3 +287,21 @@ export interface User {
     createdAt: string;
   };
 }
+
+export interface ProjectChatProps {
+  projectId: string;
+  members: {
+    id: string;
+    username: string;
+    image?: string;
+  }[];
+}
+
+export interface FilePreview {
+  file: File;
+  preview: string;
+}
+
+export type FileIconConfig = {
+  [key: string]: React.ComponentType<{ className?: string }>;
+};

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { NotificationType } from "@prisma/client";
+import { RealtimeManager } from "@/lib/realtime";
 
 export async function createNotification(data: {
   userId: string;
@@ -13,13 +14,22 @@ export async function createNotification(data: {
 }) {
   try {
     const notification = await prisma.notification.create({
-      data,
+      data: {
+        type: data.type,
+        title: data.message,
+        message: data.message,
+        userId: data.userId,
+        data: data.data,
+      },
     });
 
-    return { success: true, data: notification };
+    // Send realtime notification
+    await RealtimeManager.sendNotification(data.userId, notification);
+
+    return notification;
   } catch (error) {
     console.error("Failed to create notification:", error);
-    throw new Error("Failed to create notification");
+    throw error;
   }
 }
 

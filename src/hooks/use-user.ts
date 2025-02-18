@@ -1,26 +1,22 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import type { User } from "@/types/global";
 
 export function useUser() {
-  const queryClient = useQueryClient();
 
-  const { data: user, isLoading } = useQuery({
+  const { data: user, isLoading } = useQuery<User | null>({
     queryKey: ["user"],
     queryFn: async () => {
       const response = await fetch("/api/user");
-      if (!response.ok) {
-        queryClient.clear();
-        throw new Error("Failed to fetch user");
-      }
+      if (!response.ok) return null;
       return response.json();
     },
-    staleTime: 0,
-    retry: false,
+    staleTime: Infinity,
   });
 
   return {
-    user,
+    user: user || null,
     isLoading,
   };
 } 

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "./user";
 
 export async function createTeam(data: {
   name: string;
@@ -29,7 +30,7 @@ export async function createTeam(data: {
     revalidatePath("/dashboard/teams");
     return { success: true, data: team };
   } catch (error) {
-    console.error("Failed to create team: ", error)
+    console.error("Failed to create team: ", error);
     return { success: false, error: "Failed to create team" };
   }
 }
@@ -46,14 +47,14 @@ export async function getManagerTeams(managerId: string) {
             user: true,
           },
         },
-        projects: true
+        projects: true,
       },
     });
 
-    return { success: true, data: teams }
+    return { success: true, data: teams };
   } catch (error) {
-    console.error("Failed to fetch teams: ", error)
-    return { success: false, error: "Failed to fetch teams"}
+    console.error("Failed to fetch teams: ", error);
+    return { success: false, error: "Failed to fetch teams" };
   }
 }
 
@@ -78,7 +79,7 @@ export async function getTeams(userId: string) {
     });
     return { success: true, data: teams };
   } catch (error) {
-    console.error("Failed to fetch teams: ", error)
+    console.error("Failed to fetch teams: ", error);
     return { success: false, error: "Failed to fetch teams" };
   }
 }
@@ -215,3 +216,22 @@ export async function handleTeamInvitation(
     return { success: false, error: "Failed to handle invitation" };
   }
 }
+
+export const getTeamMemberships = async () => {
+  try {
+    const user = await getUser();
+    const teamMembers = await prisma.teamMember.findMany({
+      where: {
+        userId: user?.id,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    return { success: true, data: teamMembers };
+  } catch (error) {
+    console.error("Failed to get team memberships: ", error);
+    return { success: false, error: "Failed to get team memberships" };
+  }
+};

@@ -1,14 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { BarChart as BarChartIcon, Clock, DollarSign, Users } from "lucide-react";
-import { Line, Bar } from "react-chartjs-2";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, Clock, DollarSign, Users } from "lucide-react";
+import { Line, Bar, Bubble } from "react-chartjs-2";
 import {
   Select,
   SelectContent,
@@ -18,113 +13,38 @@ import {
 } from "@/components/ui/select";
 import { format, subMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { ReportData } from "@/types/global";
+import { Report, ReportData } from "@/types/global";
+import ReportCard from "./reports/ReportCard";
+import { assembleReports, chartData, chartOptions } from "@/lib/constants";
+import { months } from "@/lib/utils";
 
 interface ReportsListProps {
-  data: ReportData
+  data: ReportData;
 }
 
 export function ReportsList({ data }: ReportsListProps) {
   const [selectedMonth, setSelectedMonth] = useState(() => {
     return format(new Date(), "yyyy-MM");
   });
-  const [chartType, setChartType] = useState<"line" | "bar">("line");
+  const [chartType, setChartType] = useState<"line" | "bar" | "bubble">("line");
 
-  const months = Array.from({ length: 12 }, (_, i) => {
-    const date = subMonths(new Date(), i);
-    return {
-      value: format(date, "yyyy-MM"),
-      label: format(date, "MMMM yyyy"),
-    };
-  });
+  const ChartComponent =
+    chartType === "line" ? Line : chartType === "bubble" ? Bubble : Bar;
 
-  const filteredEntries = data.timeEntries.filter((entry) => {
-    return entry.date.startsWith(selectedMonth);
-  });
-
-  const chartData = {
-    labels: filteredEntries.map((entry) => format(new Date(entry.date), "dd MMM")),
-    datasets: [
-      {
-        label: "Hours Tracked",
-        data: filteredEntries.map((entry) => Number(entry.hours.toFixed(2))),
-        borderColor: "rgb(75, 192, 192)",
-        backgroundColor: "rgba(75, 192, 192, 0.5)",
-        tension: 0.1,
-        fill: false,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top" as const,
-      },
-      title: {
-        display: true,
-        text: "Hours Tracked per Day",
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: "Hours",
-        },
-      },
-      x: {
-        title: {
-          display: true,
-          text: "Date",
-        },
-      },
-    },
-  };
-
-  const ChartComponent = chartType === "line" ? Line : Bar;
+  const reports = assembleReports(data);
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Hours</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.totalHours.toFixed(2)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${data.totalEarnings.toFixed(2)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-            <BarChartIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.activeProjects}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.totalMembers}</div>
-          </CardContent>
-        </Card>
+        {reports.map((report) => (
+          <ReportCard
+            key={report.title}
+            title={report.title}
+            icon={<report.icon className="h-4 w-4 text-muted-foreground" />}
+            description={report.description}
+            content={report.value.toString()}
+          />
+        ))}
       </div>
 
       <Card>
@@ -158,15 +78,22 @@ export function ReportsList({ data }: ReportsListProps) {
               >
                 Bar
               </Button>
+              <Button
+                variant={chartType === "bubble" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setChartType("bubble")}
+              >
+                Bubble
+              </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
-            <ChartComponent data={chartData} options={chartOptions} />
+            <ChartComponent data={chartData(data)} options={chartOptions} />
           </div>
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

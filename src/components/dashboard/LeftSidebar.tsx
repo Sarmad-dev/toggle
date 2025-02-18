@@ -10,7 +10,7 @@ const LeftSidebar = () => {
   return (
     <aside
       className={cn(
-        "sticky left-0 h-[calc(100vh-3.5rem)]",
+        "h-screen",
         "w-64 flex-shrink-0",
         "transform transition-transform duration-200 ease-in-out",
         "bg-background border-r z-50",

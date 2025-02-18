@@ -58,49 +58,19 @@ export default function ReportsPage() {
     error: timeError,
   } = useQuery({
     queryKey: ["time-tracking-stats"],
-    queryFn: () => getTimeTrackingStats(user?.id as string),
+    queryFn: async () => await getTimeTrackingStats(user?.id as string),
     enabled: !!user,
   });
 
-  // const {
-  //   data: billableStats,
-  //   isLoading: billableLoading,
-  //   error: billableError,
-  // } = useQuery({
-  //   queryKey: ["billable-amount"],
-  //   queryFn: () => getBillableAmount(user?.id!),
-  //   enabled: !!user,
-  // });
-
-  // const {
-  //   data: membersStats,
-  //   isLoading: membersLoading,
-  //   error: membersError,
-  // } = useQuery({
-  //   queryKey: ["total-members"],
-  //   queryFn: () => getTotalMembers(user?.id!),
-  //   enabled: !!user,
-  // });
-
-  // const {
-  //   data: projectsStats,
-  //   isLoading: projectsLoading,
-  //   error: projectsError,
-  // } = useQuery({
-  //   queryKey: ["total-projects-current-month"],
-  //   queryFn: () => getTotalProjectsCurrentMonth(user?.id!),
-  //   enabled: !!user,
-  // });
-
   const { data: projects } = useQuery({
     queryKey: ["all-projects"],
-    queryFn: () => getAllProjects(),
+    queryFn: async () => await getAllProjects(),
     enabled: !!user,
   });
 
   const { data: teams } = useQuery({
     queryKey: ["all-teams"],
-    queryFn: () => getAllTeams(),
+    queryFn: async () => await getAllTeams(),
     enabled: !!user,
   });
 
@@ -117,7 +87,7 @@ export default function ReportsPage() {
       setIsLoading(true);
       try {
         const data = await getFilteredReportData(filter);
-        setChartData(data);
+        setChartData(data as FilteredChartData);
       } catch (error) {
         console.error("Error fetching filtered report data:", error);
         toast.error("Failed to load filtered reports");
@@ -129,45 +99,11 @@ export default function ReportsPage() {
     fetchChartData();
   }, [filter]);
 
-  // const assembleReports = (): Report[] => {
-  //   return [
-  //     {
-  //       title: "Time Tracked",
-  //       description: "Total hours tracked this month",
-  //       value: timeStats?.data?.totalHours ? `${timeStats.data.totalHours}h` : "0h",
-  //       icon: Clock,
-  //     },
-  //     {
-  //       title: "Revenue",
-  //       description: "Total billable amount this month",
-  //       value: billableStats?.data?.totalBillableAmount ? `$${billableStats.data.totalBillableAmount.toFixed(2)}` : "$0.00",
-  //       icon: DollarSign,
-  //     },
-  //     {
-  //       title: "Team Activity",
-  //       description: "Total unique members involved",
-  //       value: membersStats?.data?.totalMembers ? `${membersStats.data.totalMembers} members` : "0 members",
-  //       icon: Users,
-  //     },
-  //     {
-  //       title: "Projects",
-  //       description: "Total projects this month",
-  //       value: projectsStats?.data?.totalProjectsCurrentMonth ? `${projectsStats.data.totalProjectsCurrentMonth} projects` : "0 projects",
-  //       icon: BarChart,
-  //     },
-  //   ];
-  // };
-
-  // const reports = assembleReports();
-
   const { type: filterType, id: filterId, chartType } = filter;
 
   if (
     userLoading ||
     timeLoading
-    // billableLoading ||
-    // membersLoading ||
-    // projectsLoading
   ) {
     return (
       <div className="flex items-center justify-center w-full min-h-screen">

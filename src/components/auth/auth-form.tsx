@@ -16,6 +16,8 @@ import { FcGoogle } from "react-icons/fc";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 interface AuthFormProps<T extends z.ZodType> {
   schema: T;
@@ -47,6 +49,23 @@ export function AuthForm<T extends z.ZodType>({
     defaultValues,
   });
 
+  const handleGoogleSignIn = async () => {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+      },
+    });
+
+    if (error) {
+      console.error("Google sign-in error:", error);
+      // You might want to add toast notification here
+      toast.error("Google sign-in error: error.message");
+      return;
+    }
+  };
+
   const isSubmitting = form.formState.isSubmitting;
 
   return (
@@ -57,10 +76,7 @@ export function AuthForm<T extends z.ZodType>({
         border border-[#E5E7EB] dark:border-[#374151]"
       >
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {formFields.map((field) => (
               <FormField
                 key={field.name.toString()}
@@ -151,9 +167,7 @@ export function AuthForm<T extends z.ZodType>({
                   "hover:shadow-md dark:hover:shadow-primary/20",
                   "border-[#8B7355]/20 hover:border-[#8B7355]/50"
                 )}
-                onClick={() => {
-                  /* Implement Google sign in */
-                }}
+                onClick={handleGoogleSignIn}
               >
                 <FcGoogle className="w-5 h-5" />
                 Continue with Google

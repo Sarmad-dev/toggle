@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { RealtimeManager } from "@/lib/realtime";
 import { useUser } from "@/hooks/use-user";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +10,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChatMessageFormData, chatMessageSchema } from "@/lib/validations/chat";
-import { format } from "date-fns";
 import {
   Send,
   Paperclip,
@@ -20,9 +20,10 @@ import {
   File,
   Reply,
   ChartPie,
+  Check,
 } from "lucide-react";
-import type { OnlineUser, ChatMessage } from "@/types/global";
-import { useQuery } from "@tanstack/react-query";
+import type { OnlineUser, ChatMessage, FileIconConfig } from "@/types/global";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { sendMessage, getProjectMessages } from "@/lib/actions/chat";
 import { uploadFile } from "@/lib/storage";
@@ -35,24 +36,14 @@ import {
 import { FilePreviewModal } from "./file-preview-modal";
 import Image from "next/image";
 import { Spinner } from "@/components/ui";
+import { chatConfig } from "@/lib/constants";
+import { getFileIcon, formatMessageDate } from "@/lib/utils";
+import type { ProjectChatProps, FilePreview } from "@/types/global";
 
-interface ProjectChatProps {
-  projectId: string;
-  members: {
-    id: string;
-    username: string;
-    image?: string;
-  }[];
-}
-
-interface FilePreview {
-  file: File;
-  preview: string;
-}
-
-export function ProjectChat({ projectId }: ProjectChatProps) {
+export function ProjectChat({ projectId, members }: ProjectChatProps) {
   const { user } = useUser();
-  const [onlineUsers] = useState<OnlineUser[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedFiles, setSelectedFiles] = useState<FilePreview[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,10 +62,48 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
     },
   });
 
+  const queryClient = useQueryClient();
+
   const { data: messagesData, isLoading: isLoadingMessages } = useQuery({
     queryKey: ["messages", projectId],
     queryFn: () => getProjectMessages(projectId),
   });
+
+  useEffect(() => {
+    if (messagesData) {
+      setMessages(messagesData.data || []);
+    }
+  }, [messagesData]);
+
+  useEffect(() => {
+    if (!user?.id || !projectId) return;
+
+    RealtimeManager.subscribeToProject(projectId, user.id, {
+      onMessage: (message) => {
+        setMessages((prev) => {
+          // Check if we already have this message (optimistic update)
+          const exists = prev.some((m) => m.id === message.id);
+          return exists ? prev : [...prev, message];
+        });
+      },
+      onPresenceChange: (presence) => {
+        const users = Object.values(presence)
+          .flat()
+          .map((p: any) => ({
+            userId: p.user_id,
+            lastSeen: new Date(p.online_at),
+            username:
+              members.find((m) => m.id === p.user_id)?.username ||
+              "Unknown User",
+          }));
+        setOnlineUsers(users);
+      },
+    });
+
+    return () => {
+      RealtimeManager.unsubscribeFromProject(projectId);
+    };
+  }, [projectId, user?.id, members]);
 
   const scrollToBottom = () => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -82,13 +111,89 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messagesData]);
+  }, [messages]);
+
+  const { mutateAsync: sendMessageMutation } = useMutation({
+    mutationFn: sendMessage,
+    onMutate: async (newMessage) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["messages", projectId] });
+
+      // Create optimistic message
+      const optimisticMessage: ChatMessage = {
+        id: `temp-${Date.now()}`,
+        content: newMessage.content,
+        createdAt: new Date(),
+        userId: user?.id!,
+        projectId: newMessage.projectId,
+        user: {
+          id: user?.id!,
+          username: user?.username!,
+          image: user?.image,
+        },
+        fileUrl: newMessage.fileUrl as string,
+        fileName: newMessage.fileName as string,
+        fileType: newMessage.fileType as string,
+      };
+
+      // Add to messages immediately
+      setMessages((prev) => [...prev, optimisticMessage]);
+      
+      // Reset form immediately after optimistic update
+      form.reset();
+      setSelectedFiles([]);
+      setReplyTo(null);
+
+      return { optimisticMessage };
+    },
+    onSuccess: (serverMessage, _, context) => {
+      if (!serverMessage.success) {
+        toast.error(serverMessage.error || "Failed to send message");
+        setMessages((prev) =>
+          prev.filter((msg) => msg.id !== context?.optimisticMessage.id)
+        );
+        return;
+      }
+
+      const actualMessage: ChatMessage = {
+        id: serverMessage.data?.id as string,
+        content: serverMessage.data?.content as string,
+        userId: serverMessage.data?.userId as string,
+        projectId: serverMessage.data?.projectId as string,
+        createdAt: new Date(serverMessage.data?.createdAt as Date),
+        user: serverMessage.data?.user as {
+          id: string;
+          username: string;
+          image: string | null;
+        },
+        fileUrl: serverMessage.data?.fileUrl || null,
+        fileName: serverMessage.data?.fileName || null,
+        fileType: serverMessage.data?.fileType || null,
+        status: "delivered",
+      };
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === context?.optimisticMessage.id ? actualMessage : msg
+        )
+      );
+
+      RealtimeManager.sendMessage(projectId, actualMessage);
+    },
+    onError: (_, __, context) => {
+      // Remove failed message
+      setMessages((prev) =>
+        prev.filter((msg) => msg.id !== context?.optimisticMessage.id)
+      );
+    },
+  });
 
   const onSubmit = async (data: ChatMessageFormData) => {
     try {
       if (!user) return;
 
       if (!data.content.trim() && !selectedFiles.length) {
+        toast.error("Please enter a message or attach a file");
         return;
       }
 
@@ -103,7 +208,7 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
         );
       }
 
-      await sendMessage({
+      await sendMessageMutation({
         content: data.content,
         projectId,
         userId: user.id,
@@ -112,10 +217,6 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
         fileType: fileData?.fileType,
         replyToId: replyTo?.id,
       });
-
-      form.reset();
-      setSelectedFiles([]);
-      setReplyTo(null);
     } catch (error) {
       console.error("Error sending message: ", error);
       toast.error("Failed to send message");
@@ -174,17 +275,12 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
   const renderMessage = (message: ChatMessage) => {
     const isCurrentUser = message.user.id === user?.id;
 
+    const fileIconConfig: FileIconConfig = chatConfig.fileIcons;
     const getFileIcon = (fileType: string) => {
-      if (fileType.includes("pdf")) {
-        return <FileText className="h-8 w-8 text-red-500" />;
-      } else if (fileType.includes("msword")) {
-        return <FileText className="h-8 w-8 text-blue-700" />;
-      } else if (fileType.includes("sheet")) {
-        return <FileSpreadsheet className="h-8 w-8 text-green-600" />;
-      } else if (fileType.includes("presentation")) {
-        return <ChartPie className="h-8 w-8 text-orange-500" />;
-      }
-      return <File className="h-8 w-8 text-gray-500" />;
+      const IconComponent = fileIconConfig[
+        Object.keys(fileIconConfig).find(key => fileType.includes(key)) || 'default'
+      ];
+      return <IconComponent className="h-8 w-8 text-muted-foreground" key={fileType} />;
     };
 
     if (isLoadingMessages) {
@@ -239,7 +335,13 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
               </Avatar>
               <span className="text-sm">{message.user.username}</span>
               <span className="text-xs opacity-70">
-                {format(new Date(message.createdAt), "p")}
+                {formatMessageDate(new Date(message.createdAt))}
+                {message.status === "delivered" && isCurrentUser && (
+                  <Check className="h-3 w-3 ml-1 inline-block" />
+                )}
+                {message.status === "pending" && isCurrentUser && (
+                  <Loader2 className="h-3 w-3 ml-1 inline-block animate-spin" />
+                )}
               </span>
             </div>
 
@@ -253,12 +355,7 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
               <div className="mt-2 relative">
                 {message.fileType?.startsWith("image/") ? (
                   <div
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      maxWidth: "600px",
-                      margin: "auto",
-                    }}
+                    style={chatConfig.imagePreviewStyle}
                     className="cursor-pointer"
                     onClick={() =>
                       setPreviewFile({
@@ -269,13 +366,13 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
                     }
                   >
                     <Image
-                      src={message.fileUrl} // URL of the image from Supabase Storage
-                      alt={message.fileName || "Attached image"} // Alt text for accessibility
-                      layout="responsive" // Ensures the image maintains its aspect ratio
-                      width={16} // Placeholder value (will be overridden by intrinsic size)
-                      height={9} // Placeholder value (will be overridden by intrinsic size)
-                      objectFit="cover" // Ensures the image covers the container without distortion
-                      priority={false} // Optional: Set to true if the image is above the fold
+                      src={message.fileUrl}
+                      alt={message.fileName || "Attached image"}
+                      layout="responsive"
+                      width={16}
+                      height={9}
+                      objectFit="cover"
+                      priority={false}
                     />
                   </div>
                 ) : (
@@ -319,7 +416,7 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
 
   return (
     <>
-      <div className="flex flex-col h-[calc(100vh-200px)] border rounded-lg shadow-sm bg-background">
+      <div className="flex flex-col h-screen border rounded-lg shadow-sm bg-background">
         <div className="p-4 border-b bg-muted/50">
           <h3 className="font-semibold">Project Chat</h3>
           <div className="flex items-center gap-2 mt-2">
@@ -342,8 +439,8 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
         </div>
 
         <ScrollArea className="flex-1 p-4">
-          {messagesData &&
-            messagesData.data?.map((message) => renderMessage(message))}
+          {messages.length > 0 &&
+            messages.map((message) => renderMessage(message))}
         </ScrollArea>
 
         <form
@@ -434,7 +531,7 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
                 id="file-upload"
                 onChange={handleFileUpload}
                 multiple
-                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                accept={chatConfig.acceptedFileTypes}
               />
               <Button
                 type="button"
@@ -444,15 +541,7 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
               >
                 <Paperclip className="h-4 w-4" />
               </Button>
-              <Button
-                type="submit"
-                disabled={
-                  (!form.getValues("content").trim() &&
-                    !selectedFiles.length) ||
-                  isSubmitting
-                }
-                className="px-4"
-              >
+              <Button type="submit" disabled={isSubmitting} className="px-4">
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

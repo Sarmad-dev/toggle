@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { createClient } from "../supabase/server";
+import { getUser } from "./user";
 
 export async function getTimeTrackingStats(userId: string) {
   try {
@@ -18,15 +20,15 @@ export async function getTimeTrackingStats(userId: string) {
         },
       },
       orderBy: {
-        startTime: 'asc',
+        startTime: "asc",
       },
     });
 
     // Group entries by date and calculate hours
     const entriesByDate = timeEntries.reduce((acc, entry) => {
-      const date = format(entry.startTime, 'yyyy-MM-dd');
+      const date = format(entry.startTime, "yyyy-MM-dd");
       const hours = Number((entry.duration! / 3600).toFixed(2));
-      
+
       if (!acc[date]) {
         acc[date] = { date, hours: 0 };
       }
@@ -53,7 +55,9 @@ export async function getTimeTrackingStats(userId: string) {
       },
     });
 
-    const uniqueMembers = new Set(projectMembers.map(member => member.userId));
+    const uniqueMembers = new Set(
+      projectMembers.map((member) => member.userId)
+    );
     const totalMembers = uniqueMembers.size;
 
     // Calculate total earnings from billable projects
@@ -75,13 +79,17 @@ export async function getTimeTrackingStats(userId: string) {
 
     const totalEarnings = timeEntriesWithBillableAmount.reduce((acc, entry) => {
       const hours = entry.duration! / 3600;
-      return acc + (hours * (entry.project?.billableAmount || 0));
+      return acc + hours * (entry.project?.billableAmount || 0);
     }, 0);
 
     return {
       success: true,
       data: {
-        totalHours: Number(timeEntries.reduce((total, entry) => total + entry.duration! / 3600, 0).toFixed(2)),
+        totalHours: Number(
+          timeEntries
+            .reduce((total, entry) => total + entry.duration! / 3600, 0)
+            .toFixed(2)
+        ),
         totalEarnings: Number(totalEarnings.toFixed(2)),
         activeProjects,
         totalMembers,
@@ -106,7 +114,10 @@ export async function getBillableAmount(userId: string) {
       },
     });
 
-    const totalBillableAmount = billableProjects.reduce((acc, project) => acc + (project.billableAmount || 0), 0);
+    const totalBillableAmount = billableProjects.reduce(
+      (acc, project) => acc + (project.billableAmount || 0),
+      0
+    );
 
     return {
       success: true,
@@ -145,8 +156,8 @@ export async function getTotalMembers(userId: string) {
     });
 
     const uniqueMemberIds = new Set<string>();
-    teamMembers.forEach(member => uniqueMemberIds.add(member.userId));
-    projectMembers.forEach(member => uniqueMemberIds.add(member.userId));
+    teamMembers.forEach((member) => uniqueMemberIds.add(member.userId));
+    projectMembers.forEach((member) => uniqueMemberIds.add(member.userId));
 
     return {
       success: true,
@@ -188,7 +199,11 @@ export async function getTotalProjectsCurrentMonth(userId: string) {
   }
 }
 
-export async function getRevenueStats(userId: string, startDate: Date, endDate: Date) {
+export async function getRevenueStats(
+  userId: string,
+  startDate: Date,
+  endDate: Date
+) {
   try {
     const invoices = await prisma.invoice.findMany({
       where: {
@@ -204,9 +219,12 @@ export async function getRevenueStats(userId: string, startDate: Date, endDate: 
       },
     });
 
-    const totalRevenue = invoices.reduce((acc, invoice) => acc + invoice.amount, 0);
+    const totalRevenue = invoices.reduce(
+      (acc, invoice) => acc + invoice.amount,
+      0
+    );
     const paidRevenue = invoices
-      .filter(invoice => invoice.status === "PAID")
+      .filter((invoice) => invoice.status === "PAID")
       .reduce((acc, invoice) => acc + invoice.amount, 0);
 
     return {
@@ -218,18 +236,24 @@ export async function getRevenueStats(userId: string, startDate: Date, endDate: 
       },
     };
   } catch (error) {
-    console.error("Failed to fetch revenue stats: ", error)
+    console.error("Failed to fetch revenue stats: ", error);
     return { success: false, error: "Failed to fetch revenue stats" };
   }
 }
 
-export async function getFilteredReportData(filter: { type: "projects" | "teams" | "billable"; id?: string }) {
+export async function getFilteredReportData(filter: {
+  type: "projects" | "teams" | "billable";
+  id?: string;
+}) {
   try {
     if (filter.type === "billable") {
       const billableData = await getBillableAmountReport();
       return billableData;
-    } else if (filter.type === "projects" && filter.id) {
+    } else if (filter.id && filter.type === "projects") {
       const projectData = await getProjectTimeTracked(filter.id);
+      return projectData;
+    } else if (filter.type === "projects") {
+      const projectData = await getUserProjectTimeTracked()
       return projectData;
     } else if (filter.type === "teams" && filter.id) {
       const teamData = await getTeamTimeTracked(filter.id);
@@ -245,15 +269,40 @@ export async function getFilteredReportData(filter: { type: "projects" | "teams"
 
 export async function getBillableAmountReport() {
   // Example implementation using Prisma
+  const user = await getUser();
+
   const billableProjects = await prisma.project.findMany({
-    where: { billable: true },
+    where: { billable: true, managerId: user?.id },
     select: { name: true, billableAmount: true },
   });
 
-  const labels = billableProjects.map(p => p.name);
-  const values = billableProjects.map(p => p.billableAmount || 0);
+  const labels = billableProjects.map((p) => p.name);
+  const values = billableProjects.map((p) => p.billableAmount || 0);
 
   return { labels, values };
+}
+
+export async function getUserProjectTimeTracked() {
+  try {
+    const user = await getUser();
+    const timeEntries = await prisma.timeEntry.findMany({
+      where: { userId: user?.id },
+      select: { duration: true },
+    });
+
+    const totalHours = timeEntries.reduce(
+      (acc, entry) => acc + (entry.duration || 0) / 3600,
+      0
+    );
+
+    return { labels: ["Total Hours"], values: [totalHours] };
+  } catch (error) {
+    console.error("Error fetching user project time tracked: ", error);
+    return {
+      success: false,
+      error: "Failed to fetch user project time tracked",
+    };
+  }
 }
 
 export async function getProjectTimeTracked(projectId: string) {
@@ -262,7 +311,10 @@ export async function getProjectTimeTracked(projectId: string) {
     select: { duration: true },
   });
 
-  const totalHours = timeEntries.reduce((acc, entry) => acc + (entry.duration || 0) / 3600, 0);
+  const totalHours = timeEntries.reduce(
+    (acc, entry) => acc + (entry.duration || 0) / 3600,
+    0
+  );
 
   return { labels: ["Total Hours"], values: [totalHours] };
 }
@@ -277,16 +329,37 @@ export async function getTeamTimeTracked(teamId: string) {
     select: { duration: true },
   });
 
-  const totalHours = timeEntries.reduce((acc, entry) => acc + (entry.duration || 0) / 3600, 0);
+  const totalHours = timeEntries.reduce(
+    (acc, entry) => acc + (entry.duration || 0) / 3600,
+    0
+  );
 
   return { labels: ["Total Hours"], values: [totalHours] };
 }
 
 export async function getAllProjects() {
   try {
+    const supsabase = await createClient();
+    const {
+      data: { user: authUser },
+    } = await supsabase.auth.getUser();
+    if (!authUser) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: authUser.email },
+    });
+
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
     const projects = await prisma.project.findMany({
+      where: { managerId: user.id },
       select: { id: true, name: true },
     });
+
     return { success: true, data: projects };
   } catch (error) {
     console.error("Error fetching all projects:", error);
@@ -306,7 +379,10 @@ export async function getAllTeams() {
   }
 }
 
-export async function getLineChartData(filter: { type: "projects" | "teams" | "billable"; id?: string }) {
+export async function getLineChartData(filter: {
+  type: "projects" | "teams" | "billable";
+  id?: string;
+}) {
   try {
     // Example implementation for line chart data
     const data = await getFilteredReportData(filter);
@@ -315,4 +391,4 @@ export async function getLineChartData(filter: { type: "projects" | "teams" | "b
     console.error("Error fetching line chart data:", error);
     throw error;
   }
-} 
+}

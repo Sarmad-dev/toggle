@@ -18,7 +18,7 @@ export function ProjectList() {
     isError,
   } = useQuery({
     queryKey: ["projects"],
-    queryFn: () => getProjects(user?.id),
+    queryFn: async () => await getProjects(user?.id),
     enabled: !!user,
     initialData: { success: true, data: [] }
   });

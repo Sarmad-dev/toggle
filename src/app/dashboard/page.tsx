@@ -1,10 +1,8 @@
-import { Timer } from "@/components/dashboard/timer";
 import { TimeEntryList } from "@/components/dashboard/time-entry-list";
 
 export default function DashboardPage() {
   return (
     <div className="space-y-4">
-      <Timer />
       <div className="space-y-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Time Entries</h2>

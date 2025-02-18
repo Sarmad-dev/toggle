@@ -31,13 +31,13 @@ export function ReportsFilter({ onFilterChange }: ReportsFilterProps) {
 
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ["all-projects"],
-    queryFn: () => getAllProjects(),
+    queryFn: async () => await getAllProjects(),
     enabled: filterType === "projects",
   });
 
   const { data: teams, isLoading: teamsLoading } = useQuery({
     queryKey: ["all-teams"],
-    queryFn: () => getAllTeams(),
+    queryFn: async () => await getAllTeams(),
     enabled: filterType === "teams",
   });
 

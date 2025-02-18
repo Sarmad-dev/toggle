@@ -6,6 +6,7 @@ import { createProjectInvitation } from "./project-invitations";
 import { NotificationType } from "@prisma/client";
 import { createClient } from "../supabase/server";
 import { checkSubscriptionLimit } from "@/lib/subscription";
+import { getUser } from "./user";
 
 export async function createProject(data: {
   name: string;
@@ -17,11 +18,16 @@ export async function createProject(data: {
   members: string[];
   teamId?: string;
 }) {
-  const subscriptionCheck = await checkSubscriptionLimit(data.managerId, 'projects');
+  const subscriptionCheck = await checkSubscriptionLimit(
+    data.managerId,
+    "projects"
+  );
   if (!subscriptionCheck.allowed) {
-    return { 
-      success: false, 
-      error: subscriptionCheck.message + ". Please upgrade to Pro to create more projects." 
+    return {
+      success: false,
+      error:
+        subscriptionCheck.message +
+        ". Please upgrade to Pro to create more projects.",
     };
   }
 
@@ -69,11 +75,11 @@ export async function getProjects(userId: string) {
           {
             members: {
               some: {
-                userId: userId
-              }
-            }
-          }
-        ]
+                userId: userId,
+              },
+            },
+          },
+        ],
       },
       include: {
         client: true,
@@ -87,13 +93,13 @@ export async function getProjects(userId: string) {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
     return { success: true, data: projects };
   } catch (error) {
-    console.error("Failed to fetch projects: ", error)
+    console.error("Failed to fetch projects: ", error);
     return { success: false, error: "Failed to fetch projects" };
   }
 }
@@ -107,7 +113,7 @@ export async function getProject(projectId: string) {
           select: {
             id: true,
             name: true,
-          }
+          },
         },
         members: {
           include: {
@@ -126,7 +132,7 @@ export async function getProject(projectId: string) {
 
     return { success: true, data: project };
   } catch (error) {
-    console.error("Failed to fetch project: ", error)
+    console.error("Failed to fetch project: ", error);
     return { success: false, error: "Failed to fetch project" };
   }
 }
@@ -145,21 +151,26 @@ export async function getProjectMembers(projectId: string) {
       },
     });
 
-    return { 
-      success: true, 
-      data: members.map(m => ({ id: m.userId, username: m.user.username })) 
+    return {
+      success: true,
+      data: members.map((m) => ({ id: m.userId, username: m.user.username })),
     };
   } catch (error) {
-    console.error("Failed to fetch project members: ", error)
+    console.error("Failed to fetch project members: ", error);
     return { success: false, error: "Failed to fetch project members" };
   }
 }
 
-export async function addProjectMember(data: { projectId: string; userId: string }) {
+export async function addProjectMember(data: {
+  projectId: string;
+  userId: string;
+}) {
   try {
     // Get the authenticated user
     const supabase = await createClient();
-    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
 
     if (!authUser?.email) {
       return { success: false, error: "Unauthorized" };
@@ -167,7 +178,7 @@ export async function addProjectMember(data: { projectId: string; userId: string
 
     // Get the user from the database
     const invitingUser = await prisma.user.findUnique({
-      where: { email: authUser.email }
+      where: { email: authUser.email },
     });
 
     if (!invitingUser) {
@@ -177,7 +188,7 @@ export async function addProjectMember(data: { projectId: string; userId: string
     // Get the project to verify it exists and get its name
     const project = await prisma.project.findUnique({
       where: { id: data.projectId },
-      select: { name: true }
+      select: { name: true },
     });
 
     if (!project) {
@@ -190,8 +201,8 @@ export async function addProjectMember(data: { projectId: string; userId: string
         projectId: data.projectId,
         userId: data.userId,
         invitedById: invitingUser.id,
-        status: "PENDING"
-      }
+        status: "PENDING",
+      },
     });
 
     // Create notification for the invited user
@@ -201,8 +212,8 @@ export async function addProjectMember(data: { projectId: string; userId: string
         type: "PROJECT_INVITATION",
         title: "Project Invitation",
         message: `You have been invited to join project: ${project.name}`,
-        data: invitation.id
-      }
+        data: invitation.id,
+      },
     });
 
     revalidatePath(`/dashboard/projects/${data.projectId}`);
@@ -223,33 +234,33 @@ export async function acceptProjectInvitation(invitationId: string) {
           include: {
             members: {
               include: {
-                user: true
-              }
-            }
-          }
-        }
-      }
+                user: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // Add member to project
     await prisma.projectMember.create({
       data: {
         projectId: invitation.projectId,
-        userId: invitation.userId
-      }
+        userId: invitation.userId,
+      },
     });
 
     // Notify existing members
     await Promise.all(
-      invitation.project.members.map(member => 
+      invitation.project.members.map((member) =>
         prisma.notification.create({
           data: {
             userId: member.user.id,
             type: "PROJECT_MEMBER_ADDED" as NotificationType,
-            title: 'Project Member Added',
+            title: "Project Member Added",
             message: `A new member has joined the project`,
-            data: invitation.projectId
-          }
+            data: invitation.projectId,
+          },
         })
       )
     );
@@ -262,14 +273,17 @@ export async function acceptProjectInvitation(invitationId: string) {
   }
 }
 
-export async function updateProject(id: string, data: {
-  name?: string;
-  description?: string;
-  teamId?: string | null;
-  billable?: boolean;
-  billableAmount?: number;
-  color?: string;
-}) {
+export async function updateProject(
+  id: string,
+  data: {
+    name?: string;
+    description?: string;
+    teamId?: string | null;
+    billable?: boolean;
+    billableAmount?: number;
+    color?: string;
+  }
+) {
   try {
     const project = await prisma.project.update({
       where: { id },
@@ -296,4 +310,39 @@ export async function updateProject(id: string, data: {
     console.error("Error updating project:", error);
     return { success: false, error: "Failed to update project" };
   }
-} 
+}
+
+export const getManagerProjects = async () => {
+  try {
+    const manager = await getUser()
+    const projectsCount = await prisma.project.findMany({
+      where: {
+        managerId: manager?.id,
+      },
+    });
+
+    return { success: true, data: projectsCount };
+  } catch (error) {
+    console.error("Failed to get manager projects: ", error);
+    return { success: false, error: "Failed to get manager projects" };
+  }
+};
+
+export const getProjectMemberships = async () => {
+  try {
+    const user = await getUser()
+    const projectMembers = await prisma.projectMember.findMany({
+      where: {
+        userId: user?.id,
+      },
+      include: {
+        project: true,
+      },
+    });
+
+    return { success: true, data: projectMembers };
+  } catch (error) {
+    console.error("Failed to get project memberships: ", error);
+    return { success: false, error: "Failed to get project memberships" };
+  }
+};

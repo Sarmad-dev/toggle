@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Clock, Users2, Calendar, BarChart2, MessageSquare, Zap } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,6 @@ export default async function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader isLoggedIn={!!session} />
-      {/* Hero Section */}
       <section className="relative pt-32 pb-20 overflow-hidden bg-gradient-to-b from-primary/5 to-background">
         <div className="absolute inset-0 grid grid-cols-2 -space-x-52 opacity-40 dark:opacity-20">
           <div className="blur-[106px] h-56 bg-gradient-to-br from-primary to-purple-400 dark:from-blue-700" />
@@ -94,8 +93,8 @@ export default async function Home() {
                   <Image
                     src={testimonial.image}
                     alt={testimonial.author}
-                    width={48}
-                    height={48}
+                    width={40}
+                    height={40}
                     className="rounded-full"
                   />
                   <div>

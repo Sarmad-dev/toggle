@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 const previewImages = [
@@ -21,14 +20,12 @@ const previewImages = [
 export function PreviewCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
 
   useEffect(() => {
     const timer = setInterval(() => {
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentIndex((current) => 
+        setCurrentIndex((current) =>
           current === previewImages.length - 1 ? 0 : current + 1
         );
         setIsTransitioning(false);
@@ -42,15 +39,23 @@ export function PreviewCarousel() {
     <div className="relative mx-auto max-w-5xl">
       <div className="relative">
         <Image
-          src={isDark 
-            ? previewImages[currentIndex].dark 
-            : previewImages[currentIndex].light
-          }
+          src={previewImages[currentIndex].dark}
           alt={`${previewImages[currentIndex].title} Preview`}
           width={1280}
           height={720}
           className={cn(
-            "rounded-lg border shadow-2xl transition-all duration-500",
+            "rounded-lg border shadow-2xl transition-all duration-500 hidden dark:block",
+            isTransitioning ? "opacity-0 scale-95" : "opacity-100 scale-100"
+          )}
+          priority
+        />
+        <Image
+          src={previewImages[currentIndex].light}
+          alt={`${previewImages[currentIndex].title} Preview`}
+          width={1280}
+          height={720}
+          className={cn(
+            "rounded-lg border shadow-2xl transition-all duration-500 block dark:hidden",
             isTransitioning ? "opacity-0 scale-95" : "opacity-100 scale-100"
           )}
           priority
@@ -66,8 +71,8 @@ export function PreviewCarousel() {
             key={index}
             className={cn(
               "w-2 h-2 rounded-full transition-all",
-              currentIndex === index 
-                ? "bg-primary w-6" 
+              currentIndex === index
+                ? "bg-primary w-6"
                 : "bg-primary/20 hover:bg-primary/40"
             )}
             onClick={() => {
@@ -82,4 +87,4 @@ export function PreviewCarousel() {
       </div>
     </div>
   );
-} 
+}

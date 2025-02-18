@@ -1,5 +1,6 @@
 "use server";
 
+import { User } from "@prisma/client";
 import { prisma } from "../prisma";
 import { createClient } from "../supabase/server";
 
@@ -35,4 +36,20 @@ export const getUser = async () => {
     console.error("Failed to fetch user: ", error)
     if (error instanceof Error) throw new Error(error.message)
   }
+}
+
+export const updateUser = async (userId: string, user: { username: string, name: string, image: string }) => {
+try {
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...user
+    }
+  })
+
+  return { success: true, user: updatedUser }
+} catch (error) {
+  console.error("Failed to update user: ", error)
+  return { success: false, error: "Failed to update user" }
+}
 }

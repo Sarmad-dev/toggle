@@ -68,7 +68,7 @@ export function BillingSettings() {
   const handleManageSubscription = async () => {
     setIsLoading(true);
     try {
-      const portalUrl = await createCustomerPortal(user.id);
+      const portalUrl = await createCustomerPortal(user?.id as string);
       window.location.href = portalUrl;
     } catch (error) {
       console.error("Failed to open customer portal: ", error);
@@ -210,13 +210,13 @@ export function BillingSettings() {
             {!user.subscription?.currentPeriodEnd && (
               <p>
                 <span className="font-medium">
-                  {user.subscription.cancelAtPeriodEnd
+                  {user.subscription?.cancelAtPeriodEnd
                     ? "Access Until"
                     : "Next Payment"}
                   :
                 </span>{" "}
-                {format(
-                  addOneMonthClamped(new Date(user.subscription.createdAt)),
+                {user?.subscription?.createdAt && format(
+                  addOneMonthClamped(user.subscription.createdAt),
                   "PPP"
                 )}
               </p>

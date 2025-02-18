@@ -20,6 +20,8 @@ export async function GET() {
         id: true,
         email: true,
         username: true,
+        name: true,
+        image: true,
         orgId: true,
         plan: true,
         lemonSqueezySubscriptionId: true,
