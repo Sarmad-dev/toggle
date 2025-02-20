@@ -129,7 +129,7 @@ export function ProjectChat({ projectId, members }: ProjectChatProps) {
         user: {
           id: user?.id!,
           username: user?.username!,
-          image: user?.image,
+          image: user?.image as string,
         },
         fileUrl: newMessage.fileUrl as string,
         fileName: newMessage.fileName as string,

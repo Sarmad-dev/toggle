@@ -59,9 +59,9 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
         <TableBody>
           {invoices.map((invoice) => (
             <TableRow key={invoice.id}>
-              <TableCell>{invoice.number}</TableCell>
+              <TableCell>{invoice.invoiceNumber}</TableCell>
               <TableCell>{invoice.clientName}</TableCell>
-              <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+              <TableCell>${Number(invoice.amount).toFixed(2)}</TableCell>
               <TableCell>{format(new Date(invoice.dueDate), 'PP')}</TableCell>
               <TableCell>
                 <Select

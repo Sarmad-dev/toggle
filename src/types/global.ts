@@ -305,3 +305,25 @@ export interface FilePreview {
 export type FileIconConfig = {
   [key: string]: React.ComponentType<{ className?: string }>;
 };
+
+export interface Invoice {
+  id: string;
+  template: string;
+  invoiceNumber: string;
+  logo?: string;
+  signature?: string;
+  clientName: string;
+  clientEmail?: string;
+  clientAddress: string;
+  amount: number;
+  dueDate: Date;
+  paymentTerms: string;
+  notes?: string;
+  taxRate: number;
+  discount?: number;
+  status: "PENDING" | "PAID" | "OVERDUE";
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  clientId?: string;
+}

@@ -23,6 +23,5 @@ export async function uploadFile(file: File, folder: string) {
     };
   } catch (error) {
     console.error('Upload error:', error);
-    throw error;
   }
 } 

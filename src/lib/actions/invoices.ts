@@ -1,60 +1,72 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { InvoiceStatus } from "@/types/global";
+import { Invoice, InvoiceStatus } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import { getUser } from "./user";
+import { Prisma } from "@prisma/client";
 
-export async function createInvoice(data: {
+export async function createInvoice(invoiceData: {
+  template: string;
+  invoiceNumber: string;
+  logo: string | null;
+  signature: string | null;
   clientName: string;
-  clientEmail?: string;
-  address: string;
-  amount: number;
+  clientEmail: string | null;
+  clientAddress: string;
+  amount: string;
   dueDate: Date;
-  timeEntryIds: string[];
+  paymentTerms: string;
+  notes: string | null;
+  taxRate: string;
+  discount: string | null;
   userId: string;
 }) {
   try {
-    // Generate invoice number (e.g., INV-2024-001)
-    const invoiceCount = await prisma.invoice.count();
-    const invoiceNumber = `INV-${new Date().getFullYear()}-${String(invoiceCount + 1).padStart(3, '0')}`;
+    const user = await getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    console.log("INVOICE DATA: ", invoiceData)
 
     const invoice = await prisma.invoice.create({
       data: {
-        number: invoiceNumber,
-        clientName: data.clientName,
-        clientEmail: data.clientEmail,
-        address: data.address,
-        amount: data.amount,
-        dueDate: data.dueDate,
-        userId: data.userId,
-        timeEntries: {
-          connect: data.timeEntryIds.map(id => ({ id })),
-        },
-      },
-      include: {
-        timeEntries: true,
+        ...invoiceData,
+        status: "PENDING",
+        amount: new Prisma.Decimal(invoiceData.amount),
+        taxRate: new Prisma.Decimal(invoiceData.taxRate),
+        discount: invoiceData.discount ? new Prisma.Decimal(invoiceData.discount) : null,
+        userId: user.id
       },
     });
 
-    return { success: true, data: invoice };
+    revalidatePath("/dashboard/invoices");
+    return invoice;
   } catch (error) {
-    console.error("Error creating invoice:", error);
-    return { success: false, error: "Failed to create invoice" };
+    console.error("Database Error:", error);
+    throw new Error("Failed to create invoice");
   }
 }
 
-export async function getInvoices(userId: string) {
+export async function getInvoices() {
   try {
+    const user = await getUser()
     const invoices = await prisma.invoice.findMany({
-      where: { userId },
-      include: {
-        timeEntries: true,
-      },
+      where: { userId: user?.id },
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    return { success: true, data: invoices };
+    // Convert Decimal to string before sending to client
+    return { 
+      success: true, 
+      data: invoices.map(invoice => ({
+        ...invoice,
+        amount: invoice.amount.toString(),
+        taxRate: invoice.taxRate?.toString(),
+        discount: invoice.discount?.toString()
+      }))
+    };
   } catch (error) {
     console.error("Error fetching invoices:", error);
     return { success: false, error: "Failed to fetch invoices" };
@@ -65,9 +77,6 @@ export async function getInvoice(id: string) {
   try {
     const invoice = await prisma.invoice.findUnique({
       where: { id },
-      include: {
-        timeEntries: true,
-      },
     });
 
     return { success: true, data: invoice };
@@ -89,9 +98,6 @@ export async function updateInvoice(id: string, data: {
     const invoice = await prisma.invoice.update({
       where: { id },
       data,
-      include: {
-        timeEntries: true,
-      },
     });
 
     return { success: true, data: invoice };

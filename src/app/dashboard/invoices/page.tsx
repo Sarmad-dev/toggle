@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getInvoices } from "@/lib/actions/invoices";
-import { useUser } from "@/hooks/use-user";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { InvoiceList } from "@/components/dashboard/invoice-list";
@@ -11,7 +10,6 @@ import { CreateInvoice } from "@/components/dashboard/create-invoice";
 import { Spinner } from "@/components/ui/spinner";
 
 export default function InvoicesPage() {
-  const { user } = useUser();
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const {
@@ -21,8 +19,7 @@ export default function InvoicesPage() {
     refetch,
   } = useQuery({
     queryKey: ["invoices"],
-    queryFn: () => getInvoices(user?.id as string),
-    enabled: !!user,
+    queryFn: () => getInvoices(),
   });
 
   // Refetch invoices every 30 seconds to check for overdue status

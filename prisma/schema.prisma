@@ -236,7 +236,6 @@ model TimeEntry {
   project     Project   @relation(fields: [projectId], references: [id])
   taskId      String?
   task        Task?     @relation(fields: [taskId], references: [id])
-  invoice     Invoice?  @relation(fields: [invoiceId], references: [id])
   invoiceId   String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -291,19 +290,27 @@ model Tag {
 }
 
 model Invoice {
-  id          String        @id @default(cuid())
-  number      String        @unique // Invoice number (e.g., INV-2024-001)
-  clientName  String
-  clientEmail String?
-  address     String
-  amount      Float
-  status      InvoiceStatus @default(PENDING)
-  dueDate     DateTime
-  timeEntries TimeEntry[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  userId      String // The user who created the invoice
-  user        User          @relation(fields: [userId], references: [id])
+  id             String    @id @default(cuid())
+  template       String
+  invoiceNumber  String    @unique
+  logo           String?
+  signature      String?
+  clientName     String
+  clientEmail    String?
+  clientAddress  String
+  amount         Decimal
+  dueDate        DateTime
+  paymentTerms   String
+  notes          String?
+  taxRate        Decimal?
+  discount       Decimal?
+  status         String    @default("PENDING")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 enum InvoiceStatus {
