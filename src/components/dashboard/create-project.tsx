@@ -269,7 +269,7 @@ export function CreateProject() {
                     ) : (
                       <MultiSelect
                         options={
-                          users?.data.map(
+                          users?.data.filter(user => user.id !== user?.id).map(
                             (user: {
                               id: string;
                               username: string;

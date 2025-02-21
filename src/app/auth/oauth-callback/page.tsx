@@ -12,7 +12,7 @@ const OAuthCallback = () => {
     handleOAuthCallback();
 
     setTimeout(() => router.push("/dashboard"), 2000);
-  }, []);
+  }, [router]);
   
   return (
     <main className="min-h-screen w-full flex flex-col space-y-3 items-center justify-center">

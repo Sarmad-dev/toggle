@@ -5,6 +5,8 @@ import LeftSidebar from "@/components/dashboard/LeftSidebar";
 import { RealtimeManager } from "@/lib/realtime";
 import { useUser } from "@/hooks/use-user";
 import { useEffect } from "react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DashboardLayout({
   children,
@@ -12,13 +14,31 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user } = useUser();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!user?.id) return;
     
     RealtimeManager.subscribeToNotifications(user.id, (notification) => {
-      // Handle new notification
-      // You can update your notifications state here
+      // Show notification toast
+      toast(notification.title, {
+        description: notification.message,
+      });
+
+      // Invalidate relevant queries based on notification type
+      switch (notification.type) {
+        case "INVOICE_CREATED":
+        case "INVOICE_UPDATED":
+        case "INVOICE_STATUS_CHANGED":
+          queryClient.invalidateQueries({ queryKey: ["invoices"] });
+          break;
+        case "PROJECT_UPDATED":
+          queryClient.invalidateQueries({ queryKey: ["projects"] });
+          break;
+        case "TEAM_UPDATED":
+          queryClient.invalidateQueries({ queryKey: ["teams"] });
+          break;
+      }
     });
 
     return () => {
@@ -26,7 +46,7 @@ export default function DashboardLayout({
         RealtimeManager.unsubscribeFromNotifications(user.id);
       }
     };
-  }, [user?.id]);
+  }, [user?.id, queryClient]);
 
   return (
     <div

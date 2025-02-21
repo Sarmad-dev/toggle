@@ -327,3 +327,12 @@ export interface Invoice {
   userId: string;
   clientId?: string;
 }
+
+export interface InvoiceServiceProps {
+  id: string;
+  title: string;
+  description: string;
+  hours: number;
+  rate: number;
+  total: number;
+}

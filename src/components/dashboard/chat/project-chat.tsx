@@ -15,11 +15,7 @@ import {
   Paperclip,
   X,
   Loader2,
-  FileText,
-  FileSpreadsheet,
-  File,
   Reply,
-  ChartPie,
   Check,
 } from "lucide-react";
 import type { OnlineUser, ChatMessage, FileIconConfig } from "@/types/global";
@@ -37,8 +33,13 @@ import { FilePreviewModal } from "./file-preview-modal";
 import Image from "next/image";
 import { Spinner } from "@/components/ui";
 import { chatConfig } from "@/lib/constants";
-import { getFileIcon, formatMessageDate } from "@/lib/utils";
+import { formatMessageDate } from "@/lib/utils";
 import type { ProjectChatProps, FilePreview } from "@/types/global";
+
+interface PresenceData {
+  user_id: string;
+  online_at: string;
+}
 
 export function ProjectChat({ projectId, members }: ProjectChatProps) {
   const { user } = useUser();
@@ -81,21 +82,32 @@ export function ProjectChat({ projectId, members }: ProjectChatProps) {
     RealtimeManager.subscribeToProject(projectId, user.id, {
       onMessage: (message) => {
         setMessages((prev) => {
-          // Check if we already have this message (optimistic update)
           const exists = prev.some((m) => m.id === message.id);
-          return exists ? prev : [...prev, message];
+          const messageUser = members.find((m) => m.id === message.userId);
+          const typedMessage: ChatMessage = {
+            ...message,
+            user: {
+              id: message.userId,
+              username: messageUser?.username || "Unknown User",
+              image: messageUser?.image || null
+            }
+          };
+          return exists ? prev : [...prev, typedMessage];
         });
       },
       onPresenceChange: (presence) => {
         const users = Object.values(presence)
           .flat()
-          .map((p: any) => ({
-            userId: p.user_id,
-            lastSeen: new Date(p.online_at),
-            username:
-              members.find((m) => m.id === p.user_id)?.username ||
-              "Unknown User",
-          }));
+          .map((p: unknown) => {
+            const presenceData = p as PresenceData;
+            return {
+              userId: presenceData.user_id,
+              lastSeen: new Date(presenceData.online_at),
+              username:
+                members.find((m) => m.id === presenceData.user_id)?.username ||
+                "Unknown User",
+            };
+          });
         setOnlineUsers(users);
       },
     });
@@ -124,11 +136,11 @@ export function ProjectChat({ projectId, members }: ProjectChatProps) {
         id: `temp-${Date.now()}`,
         content: newMessage.content,
         createdAt: new Date(),
-        userId: user?.id!,
+        userId: user?.id as string,
         projectId: newMessage.projectId,
         user: {
-          id: user?.id!,
-          username: user?.username!,
+          id: user?.id as string,
+          username: user?.username as string,
           image: user?.image as string,
         },
         fileUrl: newMessage.fileUrl as string,

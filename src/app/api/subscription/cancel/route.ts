@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 const LEMON_SQUEEZY_API_KEY = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_API_KEY;
 const LEMON_SQUEEZY_API_URL = 'https://api.lemonsqueezy.com/v1';
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
     const supabaseServer = await createClient();
     const { data: { user: supabaseUser } } = await supabaseServer.auth.getUser();

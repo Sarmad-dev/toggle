@@ -34,14 +34,14 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { invoiceTemplates, TemplateId } from "@/lib/invoice-templates";
 import { Card } from "@/components/ui/card";
-import { generateInvoicePDF } from "@/lib/pdf-generator";
-import { Invoice, Prisma } from "@prisma/client";
 import { uploadFile } from "@/lib/storage";
 import { FilePreview } from "@/types/global";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { invoiceServices } from "@/lib/constants";
+import Image from "next/image";
 
 // Step definitions
-type FormStep = "template" | "branding" | "details";
+type FormStep = "template" | "branding" | "details" | "services";
 
 const formSchema = z.object({
   template: z.string().min(1, "Template is required"),
@@ -51,12 +51,17 @@ const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required"),
   clientEmail: z.string().email().optional(),
   clientAddress: z.string().min(1, "Address is required"),
-  amount: z.string().regex(/^\d+\.?\d*$/, "Invalid amount"),
   dueDate: z.date(),
   paymentTerms: z.string().min(1),
   notes: z.string().optional(),
   taxRate: z.coerce.number().min(0).max(100),
   discount: z.coerce.number().min(0).optional().nullable(),
+  services: z.array(z.object({
+    title: z.string().min(1, "Title is required"),
+    description: z.string().optional(),
+    hours: z.string().regex(/^\d+\.?\d*$/, "Invalid hours"),
+    rate: z.string().regex(/^\d+\.?\d*$/, "Invalid rate"),
+  })).min(1, "At least one service is required"),
 });
 
 interface CreateInvoiceProps {
@@ -85,11 +90,16 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
       clientName: "",
       clientEmail: "",
       clientAddress: "",
-      amount: "",
       taxRate: 0,
       discount: 0,
       notes: "",
       paymentTerms: "",
+      services: [{
+        title: "",
+        description: "",
+        hours: "",
+        rate: "",
+      }],
     },
   });
 
@@ -133,20 +143,18 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
                     <div className="flex-1 overflow-hidden rounded-lg">
                       <div className="scale-75 origin-top">
                         {template?.preview({
-                          amount: "100",
                           taxRate: "10",
                           notes: "This is a test invoice",
                           paymentTerms: "NET 15",
                           dueDate: new Date(),
                           createdAt: new Date(),
-                          status: "PENDING",
                           invoiceNumber: "INVOICE-1234567890",
                           clientName: "John Doe",
                           clientEmail: "john.doe@example.com",
                           clientAddress: "123 Main St, Anytown, USA",
                           logo: "https://png.pngtree.com/png-clipart/20190604/original/pngtree-creative-company-logo-png-image_1197025.jpg",
-                          signature: "",
-                          date: "",
+                          signature: "https://signaturely.com/wp-content/uploads/2020/04/mark-cuban-signature-signaturely-image.png",
+                          services: invoiceServices
                         })}
                       </div>
                     </div>
@@ -176,7 +184,7 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
               <FormField
                 control={form.control}
                 name="logo"
-                render={({ field }) => (
+                render={() => (
                   <FormItem>
                     <FormLabel>Company Logo</FormLabel>
                     <FormControl>
@@ -189,10 +197,12 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
                           }}
                         />
                         {logo?.preview && (
-                          <img
+                          <Image
                             src={logo?.preview}
                             alt="Logo preview"
                             className="h-16 w-16 object-contain rounded-md"
+                            width={64}
+                            height={64}
                           />
                         )}
                       </div>
@@ -204,7 +214,7 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
               <FormField
                 control={form.control}
                 name="signature"
-                render={({ field }) => (
+                render={() => (
                   <FormItem>
                     <FormLabel>E-Signature</FormLabel>
                     <FormControl>
@@ -217,10 +227,12 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
                           }}
                         />
                         {signature?.preview && (
-                          <img
+                          <Image
                             src={signature?.preview}
                             alt="Signature preview"
                             className="h-16 w-32 object-contain"
+                            width={128}
+                            height={64}
                           />
                         )}
                       </div>
@@ -280,19 +292,6 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
                   <FormLabel>Address</FormLabel>
                   <FormControl>
                     <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -394,10 +393,106 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
               >
                 Back
               </Button>
+              <Button onClick={() => setCurrentStep("services")}>Next</Button>
+            </div>
+          </div>
+        );
+
+      case "services":
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold">Services</h3>
+            {form.watch("services").map((_, index) => (
+              <div key={index} className="space-y-4 p-4 border rounded-lg">
+                <FormField
+                  control={form.control}
+                  name={`services.${index}.title`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Service Title</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`services.${index}.description`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name={`services.${index}.hours`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Hours</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`services.${index}.rate`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Rate</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                {index > 0 && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => {
+                      const services = form.getValues("services");
+                      form.setValue("services", services.filter((_, i) => i !== index));
+                    }}
+                  >
+                    Remove Service
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const services = form.getValues("services");
+                form.setValue("services", [
+                  ...services,
+                  { title: "", description: "", hours: "", rate: "" },
+                ]);
+              }}
+            >
+              Add Service
+            </Button>
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setCurrentStep("details")}>
+                Back
+              </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="animate-spin" /> creating...
+                    <Loader2 className="animate-spin" /> Creating...
                   </>
                 ) : (
                   "Create Invoice"
@@ -419,13 +514,19 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
       clientName: string;
       clientEmail: string | null;
       clientAddress: string;
-      amount: string;
       dueDate: Date;
       paymentTerms: string;
       notes: string | null;
       taxRate: string;
       discount: string | null;
       userId: string;
+      services: {
+        title: string;
+        description: string | null;
+        hours: string;
+        rate: string;
+        total: string;
+      }[];
     }) => await createInvoice(values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
@@ -447,7 +548,6 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
         clientName: values.clientName,
         paymentTerms: values.paymentTerms,
         invoiceNumber: values.invoiceNumber,
-        amount: values.amount,
         taxRate: values.taxRate.toString(),
         discount: values.discount?.toString() ?? null,
         notes: values.notes ?? null,
@@ -457,16 +557,23 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
         dueDate: new Date(values.dueDate),
         userId: user.id,
         status: "PENDING",
+        services: values.services.map(service => ({
+          title: service.title,
+          description: service.description || null,
+          hours: service.hours,
+          rate: service.rate,
+          total: (parseFloat(service.hours) * parseFloat(service.rate)).toString(),
+        })),
       };
 
-      const createdInvoice = await mutateAsync(invoiceData);
+      await mutateAsync(invoiceData);
 
       // Generate PDF after successful creation
-      await generateInvoicePDF(
-        "invoice-preview",
-        `invoice-${createdInvoice.invoiceNumber}`,
-        values.template
-      );
+      // await generateInvoicePDF(
+      //   "invoice-preview",
+      //   `invoice-${createdInvoice.invoiceNumber}`,
+      //   values.template
+      // );
 
       toast.success("Invoice created successfully");
       onOpenChange(false);
@@ -479,13 +586,13 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
 
   const isSubmitting = form.formState.isSubmitting;
 
-  const handleDownloadPDF = () => {
-    generateInvoicePDF(
-      "invoice-preview",
-      `invoice-${form.getValues("invoiceNumber")}`,
-      form.getValues("template")
-    );
-  };
+  // const handleDownloadPDF = () => {
+  //   generateInvoicePDF(
+  //     "invoice-preview",
+  //     `invoice-${form.getValues("invoiceNumber")}`,
+  //     form.getValues("template")
+  //   );
+  // };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

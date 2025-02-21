@@ -10,9 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, Edit } from "lucide-react";
-import { EditInvoice } from "./edit-invoice";
-import { useState } from "react";
+import { Download } from "lucide-react";
 import { downloadInvoicePDF } from "@/lib/pdf-generator";
 import { updateInvoiceStatus } from "@/lib/actions/invoices";
 import {
@@ -24,21 +22,22 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Invoice } from "@prisma/client";
-import { InvoiceStatus } from "@/types/global";
+import { InvoiceServiceProps, InvoiceStatus } from "@/types/global";
 
 interface InvoiceListProps {
-  invoices: Invoice[];
+  invoices: (Invoice & {
+    services: InvoiceServiceProps[];
+  })[];
 }
 
 export function InvoiceList({ invoices }: InvoiceListProps) {
-  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   const handleStatusChange = async (invoiceId: string, status: string) => {
     try {
       await updateInvoiceStatus(invoiceId, status as InvoiceStatus);
       toast.success("Invoice status updated");
     } catch (error) {
-      console.error("Error updating invoice status: ", error)
+      console.error("Error updating invoice status: ", error);
       toast.error("Failed to update invoice status");
     }
   };
@@ -61,12 +60,19 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
             <TableRow key={invoice.id}>
               <TableCell>{invoice.invoiceNumber}</TableCell>
               <TableCell>{invoice.clientName}</TableCell>
-              <TableCell>${Number(invoice.amount).toFixed(2)}</TableCell>
-              <TableCell>{format(new Date(invoice.dueDate), 'PP')}</TableCell>
+              <TableCell>
+                ${invoice.services.reduce(
+                  (acc, service) => acc + Number(service.total),
+                  0
+                )}
+              </TableCell>
+              <TableCell>{format(new Date(invoice.dueDate), "PP")}</TableCell>
               <TableCell>
                 <Select
                   defaultValue={invoice.status}
-                  onValueChange={(value) => handleStatusChange(invoice.id, value)}
+                  onValueChange={(value) =>
+                    handleStatusChange(invoice.id, value)
+                  }
                 >
                   <SelectTrigger className="w-[130px]">
                     <SelectValue />
@@ -88,24 +94,11 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
                 >
                   <Download className="w-4 h-4" />
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditingInvoice(invoice)}
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-
-      <EditInvoice
-        invoice={editingInvoice as Invoice}
-        open={!!editingInvoice}
-        onOpenChange={(open) => !open && setEditingInvoice(null)}
-      />
     </>
   );
-} 
+}

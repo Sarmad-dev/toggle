@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       const full_name = user_metadata?.full_name;
 
       // Upsert user using Prisma
-      const user = await prisma.user.upsert({
+      await prisma.user.upsert({
         where: { email: email! },
         update: {
           image: avatar_url,

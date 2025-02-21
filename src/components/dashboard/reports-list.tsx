@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Clock, DollarSign, Users } from "lucide-react";
 import { Line, Bar, Bubble } from "react-chartjs-2";
 import {
   Select,
@@ -11,9 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format, subMonths } from "date-fns";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Report, ReportData } from "@/types/global";
+import { ReportData } from "@/types/global";
 import ReportCard from "./reports/ReportCard";
 import { assembleReports, chartData, chartOptions } from "@/lib/constants";
 import { months } from "@/lib/utils";

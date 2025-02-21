@@ -78,6 +78,14 @@ export async function handleProjectInvitation({
         message: `${invitation.user.username} has accepted your invitation to join ${invitation.project.name}`,
         data: invitation.projectId
       });
+    } else {
+      await createNotification({
+        userId: invitation.project.managerId,
+        type: "INVITATION_DECLINED",
+        title: "Invitation Declined",
+        message: `${invitation.user.username} has declined your invitation to join ${invitation.project.name}`,
+        data: invitation.projectId
+      })
     }
 
     // Delete the notification

@@ -118,7 +118,7 @@ export default async function Home() {
         </div>
         <div className="relative container text-center">
           <h2 className="text-3xl font-bold mb-6 animate-fade-up">
-            Ready to Transform Your Team's Productivity?
+            Ready to Transform Your Team&apos;s Productivity?
           </h2>
           <p className="text-xl mb-8 animate-fade-up animation-delay-100 text-white/80">
             Join thousands of teams already using our platform to achieve more.

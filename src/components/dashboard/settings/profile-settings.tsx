@@ -19,14 +19,12 @@ import { useUser } from "@/hooks/use-user";
 import { uploadFile } from "@/lib/storage";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
-import { prisma } from "@/lib/prisma";
 import { useState, useEffect } from "react";
 import { updateUser } from "@/lib/actions/user";
 import { Spinner } from "@/components/ui";
 import {
   getManagerProjects,
   getProjectMemberships,
-  getProjects,
 } from "@/lib/actions/projects";
 import { getTeamMemberships } from "@/lib/actions/teams";
 
@@ -78,7 +76,7 @@ export function ProfileSettings() {
 
       if (selectedFile) {
         const fileData = await uploadFile(selectedFile, "avatars");
-        imageUrl = fileData.url;
+        imageUrl = fileData?.url || "";
       }
 
       const updatedUser = await updateUser(user?.id as string, {

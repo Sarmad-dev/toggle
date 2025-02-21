@@ -298,7 +298,6 @@ model Invoice {
   clientName     String
   clientEmail    String?
   clientAddress  String
-  amount         Decimal
   dueDate        DateTime
   paymentTerms   String
   notes          String?
@@ -309,6 +308,7 @@ model Invoice {
   updatedAt      DateTime  @updatedAt
   userId         String
   user           User      @relation(fields: [userId], references: [id])
+  services       InvoiceService[]
 
   @@index([userId])
 }
@@ -377,4 +377,19 @@ model TeamInvitation {
   updatedAt   DateTime @updatedAt
 
   @@unique([teamId, userId])
+}
+
+model InvoiceService {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  hours       Decimal
+  rate        Decimal
+  total       Decimal  // Calculated field (hours * rate)
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  invoiceId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([invoiceId])
 }

@@ -1,4 +1,4 @@
-import { Report, ReportData } from "@/types/global";
+import { InvoiceServiceProps, Report, ReportData } from "@/types/global";
 import {
   BarChart,
   BarChart2,
@@ -202,5 +202,26 @@ export const chatConfig = {
     width: "100%",
     maxWidth: "600px",
     margin: "auto",
-  }
+  },
 } as const;
+
+export const invoiceServices: InvoiceServiceProps[] = [
+  {
+    id: "1",
+    title: "Strategic Consulting",
+    description:
+      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.",
+    hours: 25,
+    rate: 200,
+    total: 5000,
+  },
+  {
+    id: "2",
+    title: "Market Research",
+    description:
+      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.",
+    hours: 40,
+    rate: 150,
+    total: 6000,
+  },
+];

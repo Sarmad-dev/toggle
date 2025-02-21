@@ -231,7 +231,7 @@ export function BillingSettings() {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This will cancel your subscription at the end of your current
-              billing period. You'll still have access to Pro features until
+              billing period. You&apos;ll still have access to Pro features until
               then.
             </AlertDialogDescription>
           </AlertDialogHeader>

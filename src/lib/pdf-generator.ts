@@ -1,12 +1,12 @@
 import jsPDF from "jspdf";
-import { format } from "date-fns";
 import { Invoice } from "@prisma/client";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
 import { invoiceTemplates } from "@/lib/invoice-templates";
 import ReactDOMServer from 'react-dom/server';
+import { InvoiceServiceProps } from "@/types/global";
 
-export async function downloadInvoicePDF(invoice: Invoice) {
+export async function downloadInvoicePDF(invoice: Invoice & { services: InvoiceServiceProps[] }) {
   // Create a temporary div to render the invoice template
   const tempDiv = document.createElement('div');
   tempDiv.id = 'temp-invoice';
@@ -31,9 +31,9 @@ export async function downloadInvoicePDF(invoice: Invoice) {
         createdAt: invoice.createdAt,
         paymentTerms: invoice.paymentTerms,
         dueDate: invoice.dueDate,
-        amount: invoice.amount.toString(),
-        date: format(new Date(invoice.dueDate), "PP"),
-        status: invoice.status,
+        taxRate: invoice.taxRate?.toString() || "0",
+        notes: invoice.notes || "",
+        services: invoice.services
       })
     );
 
