@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { createClient } from "@/lib/supabase/client";
 import { ChatMessage, Notification } from "@prisma/client";
 import { RealtimeChannel } from "@supabase/supabase-js";
@@ -12,6 +12,7 @@ export class RealtimeManager {
   
   static async subscribeToProject(projectId: string, userId: string, callbacks: {
     onMessage?: (message: ChatMessage) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onPresenceChange?: (presence: any) => void;
   }) {
     if (this.channels.has(projectId)) {
@@ -85,6 +86,7 @@ export class RealtimeManager {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async sendMessage(projectId: string, message: any) {
     const channel = this.channels.get(projectId);
     if (channel) {
@@ -96,6 +98,7 @@ export class RealtimeManager {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async sendNotification(userId: string, notification: any) {
     const channel = this.channels.get(`notifications:${userId}`);
     if (channel) {

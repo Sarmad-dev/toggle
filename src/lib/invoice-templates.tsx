@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 
 import { InvoiceServiceProps } from "@/types/global";
 import { Prisma } from "@prisma/client";
