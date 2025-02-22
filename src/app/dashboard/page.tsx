@@ -1,17 +1,9 @@
 import { TimeEntryList } from "@/components/dashboard/time-entry-list";
-import { cookies } from 'next/headers'
- 
-async function getCookieData() {
-  const cookieData = (await cookies()).getAll()
-  return new Promise((resolve) =>
-    setTimeout(() => {
-      resolve(cookieData)
-    }, 1000)
-  )
-}
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
-  await getCookieData()
+  
   return (
     <div className="space-y-4">
       <div className="space-y-4">

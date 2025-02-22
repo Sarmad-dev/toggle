@@ -33,6 +33,8 @@ import { Button } from "@/components/ui/button";
 import { FilterType, FilteredChartData, ReportData } from "@/types/global";
 import { downloadAsPDF } from "@/lib/pdf-generator";
 
+export const dynamic = 'force-dynamic';
+
 ChartJS.register(
   CategoryScale,
   LinearScale,

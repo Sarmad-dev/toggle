@@ -22,12 +22,40 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Invoice } from "@prisma/client";
-import { InvoiceServiceProps, InvoiceStatus } from "@/types/global";
+import { InvoiceStatus } from "@/types/global";
+import { Prisma } from "@prisma/client";
 
 interface InvoiceListProps {
-  invoices: (Invoice & {
-    services: InvoiceServiceProps[];
-  })[];
+  invoices: {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+    status: string;
+    dueDate: Date;
+    template: string;
+    invoiceNumber: string;
+    logo: string | null;
+    signature: string | null;
+    clientName: string;
+    clientEmail: string | null;
+    clientAddress: string;
+    paymentTerms: string;
+    notes: string | null;
+    taxRate: string | undefined;
+    discount: string | undefined;
+    services: {
+      id: string;
+      title: string;
+      description: string | null;
+      hours: string;
+      rate: string;
+      total: string;
+      createdAt: Date;
+      updatedAt: Date;
+      invoiceId: string;
+    }[];
+  }[];
 }
 
 export function InvoiceList({ invoices }: InvoiceListProps) {
@@ -40,6 +68,27 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
       console.error("Error updating invoice status: ", error);
       toast.error("Failed to update invoice status");
     }
+  };
+
+  const convertToDecimal = (value: string | undefined | null): Prisma.Decimal | null => {
+    if (!value) return null;
+    return new Prisma.Decimal(value);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const convertInvoiceForPDF = (invoice: InvoiceListProps['invoices'][0]): Invoice & { services: any[] } => {
+    return {
+      ...invoice,
+      taxRate: convertToDecimal(invoice.taxRate),
+      discount: convertToDecimal(invoice.discount),
+      services: invoice.services.map(service => ({
+        ...service,
+        hours: new Prisma.Decimal(service.hours),
+        rate: new Prisma.Decimal(service.rate),
+        total: new Prisma.Decimal(service.total),
+      }))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as Invoice & { services: any[] };
   };
 
   return (
@@ -90,7 +139,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => downloadInvoicePDF(invoice)}
+                  onClick={() => downloadInvoicePDF(convertInvoiceForPDF(invoice))}
                 >
                   <Download className="w-4 h-4" />
                 </Button>

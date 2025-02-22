@@ -1,5 +1,3 @@
-
-
 import { Header } from "@/components/dashboard/header";
 import LeftSidebar from "@/components/dashboard/LeftSidebar";
 import { getProjects } from "@/lib/actions/projects";
@@ -7,6 +5,8 @@ import { getAllTeams, getTimeTrackingStats } from "@/lib/actions/reports";
 import { getManagerTeams, getTeams } from "@/lib/actions/teams";
 import { getUser } from "@/lib/actions/user";
 import queryClient from "@/lib/tanstack/queryClient";
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardLayout({
   children,

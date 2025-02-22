@@ -2,19 +2,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileSettings } from "@/components/dashboard/settings/profile-settings";
 import { BillingSettings } from "@/components/dashboard/settings/billing-settings";
 import { NotificationSettings } from "@/components/dashboard/settings/notification-settings";
-import { cookies } from 'next/headers'
- 
-async function getCookieData() {
-  const cookieData = (await cookies()).getAll()
-  return new Promise((resolve) =>
-    setTimeout(() => {
-      resolve(cookieData)
-    }, 1000)
-  )
-}
+
+export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
-  await getCookieData()
+  
   return (
     <div className="space-y-8">
       <script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>

@@ -1,6 +1,8 @@
 import { TeamList } from "@/components/dashboard/team-list";
 import { CreateTeam } from "@/components/dashboard/create-team";
 
+export const dynamic = 'force-dynamic';
+
 export default function TeamsPage() {
   return (
     <div className="space-y-8">
@@ -11,4 +13,4 @@ export default function TeamsPage() {
       <TeamList />
     </div>
   );
-} 
+}
