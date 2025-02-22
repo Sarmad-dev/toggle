@@ -436,8 +436,8 @@ export const invoiceTemplates: Record<string, InvoiceTemplate> = {
                   <td>{service.title}</td>
                   <td className="w-[500px]">{service.description}</td>
                   <td className="text-center">{service.hours}</td>
-                  <td className="text-center">${service.rate.toFixed(2)}</td>
-                  <td className="text-center">${service.total.toFixed(2)}</td>
+                  <td className="text-center">${Number(service.rate).toFixed(2)}</td>
+                  <td className="text-center">${Number(service.total).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
@@ -624,8 +624,8 @@ export const invoiceTemplates: Record<string, InvoiceTemplate> = {
                 <td>{service.title}</td>
                 <td className="w-[500px]">{service.description}</td>
                 <td className="text-center">{service.hours}</td>
-                <td className="text-center">${service.rate.toFixed(2)}</td>
-                <td className="text-center">${service.total.toFixed(2)}</td>
+                <td className="text-center">${Number(service.rate).toFixed(2)}</td>
+                <td className="text-center">${Number(service.total).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>

@@ -79,15 +79,14 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
   const convertInvoiceForPDF = (invoice: InvoiceListProps['invoices'][0]): Invoice & { services: any[] } => {
     return {
       ...invoice,
-      taxRate: convertToDecimal(invoice.taxRate),
-      discount: convertToDecimal(invoice.discount),
+      taxRate: invoice.taxRate ? invoice.taxRate.toString() : null,
+      discount: invoice.discount ? invoice.discount.toString() : null,
       services: invoice.services.map(service => ({
         ...service,
-        hours: new Prisma.Decimal(service.hours),
-        rate: new Prisma.Decimal(service.rate),
-        total: new Prisma.Decimal(service.total),
+        hours: service.hours.toString(),
+        rate: service.rate.toString(),
+        total: service.total.toString(),
       }))
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as Invoice & { services: any[] };
   };
 
