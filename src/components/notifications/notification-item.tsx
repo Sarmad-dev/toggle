@@ -2,12 +2,12 @@
 
 import { NotificationType } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
-import { handleInvitation } from "@/lib/actions/notifications";
 import { Button } from "@/components/ui/button";
 import { Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { handleTeamInvitation } from "@/lib/actions/teams";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleProjectInvitation } from "@/lib/actions/project-invitations";
 
 interface NotificationItemProps {
   id?: string;
@@ -28,7 +28,6 @@ export function NotificationItem({
   message,
   read,
   data,
-  userId,
   createdAt,
   handleMarkAsRead
 }: NotificationItemProps) {
@@ -39,10 +38,10 @@ export function NotificationItem({
     mutationKey: ["handle-invitation"],
     mutationFn: async (status: "ACCEPTED" | "DECLINED") => {
       if (type === "PROJECT_INVITATION") {
-        await handleInvitation({
+        await handleProjectInvitation({
           invitationId: data,
           status,
-          userId,
+          notificationId: id as string,
         });
       } else if (type === "TEAM_INVITATION") {
         // Handle team invitation

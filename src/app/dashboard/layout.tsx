@@ -1,52 +1,62 @@
-"use client";
+
 
 import { Header } from "@/components/dashboard/header";
 import LeftSidebar from "@/components/dashboard/LeftSidebar";
-import { RealtimeManager } from "@/lib/realtime";
-import { useUser } from "@/hooks/use-user";
-import { useEffect } from "react";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { getProjects } from "@/lib/actions/projects";
+import { getAllTeams, getTimeTrackingStats } from "@/lib/actions/reports";
+import { getManagerTeams, getTeams } from "@/lib/actions/teams";
+import { getUser } from "@/lib/actions/user";
+import queryClient from "@/lib/tanstack/queryClient";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useUser();
-  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!user?.id) return;
+  const user = await getUser()
+  // useEffect(() => {
+  //   if (!user?.id) return;
     
-    RealtimeManager.subscribeToNotifications(user.id, (notification) => {
-      // Show notification toast
-      toast(notification.title, {
-        description: notification.message,
-      });
+  //   RealtimeManager.subscribeToNotifications(user.id, (notification) => {
+  //     // Show notification toast
+  //     toast(notification.title, {
+  //       description: notification.message,
+  //     });
 
-      // Invalidate relevant queries based on notification type
-      switch (notification.type) {
-        case "INVOICE_CREATED":
-        case "INVOICE_UPDATED":
-        case "INVOICE_STATUS_CHANGED":
-          queryClient.invalidateQueries({ queryKey: ["invoices"] });
-          break;
-        case "PROJECT_UPDATED":
-          queryClient.invalidateQueries({ queryKey: ["projects"] });
-          break;
-        case "TEAM_UPDATED":
-          queryClient.invalidateQueries({ queryKey: ["teams"] });
-          break;
-      }
-    });
+  //     // Invalidate relevant queries based on notification type
+  //     switch (notification.type) {
+  //       case "PROJECT_INVITATION":
+  //         queryClient.invalidateQueries({ queryKey: ["projects"] });
+  //         break;
+  //       case "TASK_ASSIGNED":
+  //         queryClient.invalidateQueries({ queryKey: ["tasks"] });
+  //         break;
+  //     }
+  //   });
 
-    return () => {
-      if (user?.id) {
-        RealtimeManager.unsubscribeFromNotifications(user.id);
+  //   return () => {
+  //     if (user?.id) {
+  //       RealtimeManager.unsubscribeFromNotifications(user.id);
+  //     }
+  //   };
+  // }, [user?.id]);
+
+  await queryClient.prefetchQuery({ queryKey: ["all-projects"], queryFn: () => getProjects(user?.id as string) })
+  await queryClient.prefetchQuery({ queryKey: ["all-teams"], queryFn: () => getAllTeams()})
+  await queryClient.prefetchQuery({ 
+        queryKey: ["manager-teams"],
+        queryFn: async () => await getManagerTeams(user?.id as string),
       }
-    };
-  }, [user?.id, queryClient]);
+  )
+  await queryClient.prefetchQuery({
+    queryKey: ["teams"],
+        queryFn: async () => await getTeams(user?.id as string),
+  })
+  await queryClient.prefetchQuery({
+      queryKey: ["time-tracking-stats"],
+      queryFn: async () => await getTimeTrackingStats(user?.id as string),
+    })
 
   return (
     <div

@@ -1,25 +1,24 @@
 "use client";
 
-import { getProjects } from "@/lib/actions/projects";
-import { useUser } from "@/hooks/use-user";
 import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "@/components/ui/data-table";
 import { Loader2 } from "lucide-react";
 import { Project } from "@/types/global";
 import { useProjectColumns } from "./columns/ProjectColumns";
+import { getProjects } from "@/lib/actions/projects";
+import { useUser } from "@/hooks/use-user";
 
 export function ProjectList() {
-  const { user } = useUser();
   const { projectColumns } = useProjectColumns();
+  const { user } = useUser()
 
   const {
     data: projects,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["projects"],
+    queryKey: ["all-projects"],
     queryFn: async () => await getProjects(user?.id as string),
-    enabled: !!user,
     initialData: { success: true, data: [] },
   });
 
@@ -40,19 +39,11 @@ export function ProjectList() {
   }
 
   return (
-    <>
-      {projects.data?.length === 0 ? (
-        <div className="flex items-center justify-center">
-          No projects found
-        </div>
-      ) : (
         <DataTable
           columns={projectColumns}
           data={projects?.data as Project[]}
           searchKey="name"
           pageSize={10}
         />
-      )}
-    </>
   );
 }

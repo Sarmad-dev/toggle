@@ -31,7 +31,7 @@ export async function createProjectInvitation({
       type: "PROJECT_INVITATION",
       title: "Project Invitation",
       message: `You have been invited to join project ${invitation.project.name}`,
-      data: projectId
+      data: invitation.id
     });
 
     return { success: true, data: invitation };
@@ -50,6 +50,10 @@ export async function handleProjectInvitation({
   status: "ACCEPTED" | "DECLINED";
   notificationId: string;
 }) {
+  console.log("INVITATION ID: ", invitationId)
+  console.log("STATUS: ", status)
+  console.log("NOTIFICATION ID: ", notificationId)
+
   try {
     const invitation = await prisma.projectInvitation.update({
       where: { id: invitationId },

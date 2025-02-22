@@ -207,25 +207,38 @@ export async function getRevenueStats(
   try {
     const invoices = await prisma.invoice.findMany({
       where: {
-        timeEntries: {
-          some: {
-            userId,
-            startTime: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
+        userId,
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
         },
+      },
+      include: {
+        services: true,
       },
     });
 
     const totalRevenue = invoices.reduce(
-      (acc, invoice) => acc + invoice.amount,
+      (acc, invoice) =>
+        acc +
+        invoice.services.reduce(
+          (acc, service) => acc + Number(service.total),
+          0
+        ),
       0
     );
+
     const paidRevenue = invoices
       .filter((invoice) => invoice.status === "PAID")
-      .reduce((acc, invoice) => acc + invoice.amount, 0);
+      .reduce(
+        (acc, invoice) =>
+          acc +
+          invoice.services.reduce(
+            (acc, service) => acc + Number(service.total),
+            0
+          ),
+        0
+      );
 
     return {
       success: true,
@@ -253,7 +266,7 @@ export async function getFilteredReportData(filter: {
       const projectData = await getProjectTimeTracked(filter.id);
       return projectData;
     } else if (filter.type === "projects") {
-      const projectData = await getUserProjectTimeTracked()
+      const projectData = await getUserProjectTimeTracked();
       return projectData;
     } else if (filter.type === "teams" && filter.id) {
       const teamData = await getTeamTimeTracked(filter.id);

@@ -4,26 +4,26 @@ import { getManagerTeams, getTeams } from "@/lib/actions/teams";
 import { useUser } from "@/hooks/use-user";
 import { useQuery } from "@tanstack/react-query";
 import TeamListTable from "./team-list-table";
-import { Spinner } from "../ui";
 import { TeamList as TeamListType } from "@/types/global";
+import { Loader2 } from "lucide-react";
 
 export function TeamList() {
   const { user } = useUser();
 
   const { data: managerTeams, isLoading: managerTeamsLoading } = useQuery({
     queryKey: ["manager-teams"],
-    queryFn: async () => await getManagerTeams(user.id),
+    queryFn: async () => await getManagerTeams(user?.id as string),
     enabled: !!user,
   });
 
   const { data: teams, isLoading: teamsLoading } = useQuery({
     queryKey: ["teams"],
-    queryFn: async () => await getTeams(user.id),
+    queryFn: async () => await getTeams(user?.id as string),
     enabled: !!user,
   });
 
   if (managerTeamsLoading || teamsLoading) {
-    return <Spinner />
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>
   }
 
   return (

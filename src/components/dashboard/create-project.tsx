@@ -86,7 +86,7 @@ export function CreateProject() {
         return;
       }
       toast.success("Project created successfully");
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["all-projects"] });
     },
     onError: (error) => {
       toast.error(error.message);
