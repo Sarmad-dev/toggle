@@ -27,7 +27,7 @@ export default function SignUpPage() {
     unknown
   >({
     mutationFn: async (values: SignUpFormData): Promise<{ success: boolean; message: string }> => {
-      const response = await fetch("/api/auth/signup", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
