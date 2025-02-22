@@ -25,7 +25,10 @@ export const getUser = async () => {
       }, 
       select: {
         id: true,
-        email: true
+        email: true,
+        username: true,
+        name: true,
+        image: true
       }
     })
 

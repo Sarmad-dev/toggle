@@ -1,18 +1,18 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getTimeEntries } from "@/lib/actions/time-entries";
 import { useUser } from "@/hooks/use-user";
 import { DataTable } from "@/components/ui/data-table";
 import { Loader2 } from "lucide-react";
 import { timeEntryColumns } from "./columns/TimeEntryColumns";
+import { getTimeEntries } from "@/lib/actions/time-entries";
 
 export function TimeEntryList() {
   const { user } = useUser();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["timeEntries"],
-    queryFn: () => getTimeEntries(user?.id),
+    queryFn: async () => await getTimeEntries(user?.id as string),
     enabled: !!user,
   });
 

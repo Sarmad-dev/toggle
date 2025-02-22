@@ -23,7 +23,6 @@ export async function getTimeTrackingStats(userId: string) {
         startTime: "asc",
       },
     });
-
     // Group entries by date and calculate hours
     const entriesByDate = timeEntries.reduce((acc, entry) => {
       const date = format(entry.startTime, "yyyy-MM-dd");

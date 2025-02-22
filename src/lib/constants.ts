@@ -118,25 +118,25 @@ export const assembleReports = (data: ReportData): Report[] => {
     {
       title: "Time Tracked",
       description: "Total hours tracked this month",
-      value: data.totalHours.toFixed(2),
+      value: data?.totalHours?.toFixed(2) || "0.00",
       icon: Clock,
     },
     {
       title: "Revenue",
       description: "Total billable amount this month",
-      value: data.totalEarnings.toFixed(2),
+      value: data?.totalEarnings?.toFixed(2) || "0.00",
       icon: DollarSign,
     },
     {
       title: "Team Activity",
       description: "Total unique members involved",
-      value: data.totalMembers,
+      value: data?.totalMembers?.toString() || "0",
       icon: Users,
     },
     {
       title: "Projects",
       description: "Total projects this month",
-      value: data.activeProjects,
+      value: data?.activeProjects?.toString() || "0",
       icon: BarChart,
     },
   ];

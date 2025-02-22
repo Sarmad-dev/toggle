@@ -64,6 +64,8 @@ export default function ReportsPage() {
     enabled: !!user,
   });
 
+  console.log("User ID: ", user?.id)
+
   const { data: projects } = useQuery({
     queryKey: ["all-projects"],
     queryFn: async () => await getAllProjects(),
