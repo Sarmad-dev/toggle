@@ -26,7 +26,6 @@ export async function POST(req: Request) {
 
   // Process validated webhook
   const payload = JSON.parse(rawBody);
-  console.log("Valid webhook:", payload.meta.event_name);
 
   const { data, meta } = payload;
 
