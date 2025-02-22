@@ -10,7 +10,7 @@ import { useProjectColumns } from "./columns/ProjectColumns";
 
 export function ProjectList() {
   const { user } = useUser();
-  const { projectColumns } = useProjectColumns()
+  const { projectColumns } = useProjectColumns();
 
   const {
     data: projects,
@@ -18,15 +18,15 @@ export function ProjectList() {
     isError,
   } = useQuery({
     queryKey: ["projects"],
-    queryFn: async () => await getProjects(user?.id),
+    queryFn: async () => await getProjects(user?.id as string),
     enabled: !!user,
-    initialData: { success: true, data: [] }
+    initialData: { success: true, data: [] },
   });
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center">
-        <Loader2 className="animate-spin" />
+      <div className="flex h-screen justify-center items-center">
+        <Loader2 className="animate-spin" size={32} />
       </div>
     );
   }
@@ -40,11 +40,19 @@ export function ProjectList() {
   }
 
   return (
-    <DataTable
-      columns={projectColumns}
-      data={projects?.data as Project[]}
-      searchKey="name"
-      pageSize={10}
-    />
+    <>
+      {projects.data?.length === 0 ? (
+        <div className="flex items-center justify-center">
+          No projects found
+        </div>
+      ) : (
+        <DataTable
+          columns={projectColumns}
+          data={projects?.data as Project[]}
+          searchKey="name"
+          pageSize={10}
+        />
+      )}
+    </>
   );
 }

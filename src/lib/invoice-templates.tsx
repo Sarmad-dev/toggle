@@ -121,8 +121,8 @@ export const invoiceTemplates: Record<string, InvoiceTemplate> = {
               />
             </div>
             <div className="text-right">
-              <p className="font-medium text-primary">INVOICE</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="font-medium text-primary text-xl">INVOICE</p>
+              <p className="text-muted-foreground">
                 {invoiceNumber || "#PRO-2024-001"}
               </p>
             </div>
@@ -130,22 +130,22 @@ export const invoiceTemplates: Record<string, InvoiceTemplate> = {
 
           <div className="grid grid-cols-2 gap-8 mb-8">
             <div>
-              <h3 className="font-semibold mb-2">Client Information</h3>
-              <p>{clientName || "Global Enterprises Ltd."}</p>
-              <p>{clientEmail || "abc@gmail.com"}</p>
-              <p>{clientAddress || "789 Corporate Blvd."}</p>
+              <h3 className="font-semibold mb-2 text-2xl">Client Information</h3>
+              <p className="text-lg">{clientName || "Global Enterprises Ltd."}</p>
+              <p className="text-lg">{clientEmail || "abc@gmail.com"}</p>
+              <p className="text-lg">{clientAddress || "789 Corporate Blvd."}</p>
             </div>
             <div className="text-right">
               <p>
-                <span className="font-semibold">Issued:</span>{" "}
+                <span className="font-bold text-lg">Issued:</span>{" "}
                 {format(new Date(createdAt), "PP")}
               </p>
               <p>
-                <span className="font-semibold">Due:</span>{" "}
+                <span className="font-bold text-lg">Due:</span>{" "}
                 {format(new Date(dueDate), "PP")}
               </p>
               <p>
-                <span className="font-semibold">Terms:</span>{" "}
+                <span className="font-bold text-lg">Terms:</span>{" "}
                 {paymentTerms || "NET 15"}
               </p>
             </div>
@@ -154,21 +154,21 @@ export const invoiceTemplates: Record<string, InvoiceTemplate> = {
           <table className="w-full mb-8">
             <thead className="bg-accent">
               <tr>
-                <th className="text-left p-3 text-sm">Service Description</th>
-                <th className="p-3 text-sm">Hours</th>
-                <th className="p-3 text-sm">Rate</th>
-                <th className="p-3 text-sm">Total</th>
+                <th className="text-left p-3 text-xl">Service Description</th>
+                <th className="p-3 text-xl">Hours</th>
+                <th className="p-3 text-xl">Rate</th>
+                <th className="p-3 text-xl">Total</th>
               </tr>
             </thead>
             <tbody>
               {services.map((service) => (
                 <tr className="border-b" key={service.id}>
-                  <td className="text-left p-3 text-sm">{service.title}</td>
-                  <td className="p-3 text-center text-sm">{`${service.hours} hrs`}</td>
-                  <td className="p-3 text-center text-sm">
+                  <td className="text-left p-3 text-lg">{service.title}</td>
+                  <td className="p-3 text-center text-lg">{`${service.hours} hrs`}</td>
+                  <td className="p-3 text-center text-lg">
                     ${`${service.rate}`}
                   </td>
-                  <td className="p-3 text-center text-sm">
+                  <td className="p-3 text-center text-lg">
                     ${`${service.total}`}
                   </td>
                 </tr>
@@ -179,9 +179,9 @@ export const invoiceTemplates: Record<string, InvoiceTemplate> = {
           <div className="grid grid-cols-2 gap-8">
             <div className="space-y-2">
               <div className="p-4 bg-accent/20 rounded-lg">
-                <p className="text-sm font-medium">Payment Instructions</p>
-                <p className="text-xs text-muted-foreground">
-                  {notes || "Bank Transfer to Account: 1234-5678"}
+                <p className="font-medium">Payment Instructions</p>
+                <p className="text-sm text-muted-foreground">
+                  {notes}
                 </p>
               </div>
             </div>
@@ -190,7 +190,7 @@ export const invoiceTemplates: Record<string, InvoiceTemplate> = {
                 <span>Tax {taxRate || "0%"}:</span>
                 <span>{`${taxAmount}`}</span>
               </div>
-              <div className="flex justify-between font-semibold">
+              <div className="flex justify-between font-semibold text-lg">
                 <span>Total Due:</span>
                 <span>{`${new Prisma.Decimal(
                   services.reduce((acc, service) => acc + service.total, 0)
