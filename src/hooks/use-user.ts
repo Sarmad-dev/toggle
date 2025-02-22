@@ -8,7 +8,7 @@ export function useUser() {
   const { data: user, isLoading } = useQuery<User | null>({
     queryKey: ["user"],
     queryFn: async () => {
-      const response = await fetch("/api/user");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/user`);
       if (!response.ok) return null;
       return response.json();
     },
