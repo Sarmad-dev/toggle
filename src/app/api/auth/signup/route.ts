@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         email,
         username,
         password: hashedPassword,
-        account: {
+        accounts: {
           create: {
             type: "credentials",
             provider: "email",
