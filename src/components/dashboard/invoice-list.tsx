@@ -70,11 +70,6 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
     }
   };
 
-  const convertToDecimal = (value: string | undefined | null): Prisma.Decimal | null => {
-    if (!value) return null;
-    return new Prisma.Decimal(value);
-  };
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const convertInvoiceForPDF = (invoice: InvoiceListProps['invoices'][0]): Invoice & { services: any[] } => {
     return {
