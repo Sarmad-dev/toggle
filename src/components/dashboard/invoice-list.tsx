@@ -23,7 +23,6 @@ import {
 import { toast } from "sonner";
 import { Invoice } from "@prisma/client";
 import { InvoiceStatus } from "@/types/global";
-import { Prisma } from "@prisma/client";
 
 interface InvoiceListProps {
   invoices: {
@@ -82,6 +81,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
         rate: service.rate.toString(),
         total: service.total.toString(),
       }))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as Invoice & { services: any[] };
   };
 
