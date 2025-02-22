@@ -55,7 +55,6 @@ export async function createCheckout(userId: string, email: string) {
   });
 
   const data = await response.json();
-  console.log('LemonSqueezy response:', data); // For debugging
 
   if (!response.ok) {
     throw new Error(data.errors?.[0]?.detail || 'Failed to create checkout');
