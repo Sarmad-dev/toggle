@@ -117,12 +117,12 @@ export function SiteHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
                 </Link>
               ) : (
                 <>
-                  <Link href="/login">
+                  <Link href="/auth/sign-in">
                     <Button variant="ghost" className="w-full">
                       Log in
                     </Button>
                   </Link>
-                  <Link href="/signup">
+                  <Link href="/auth/sign-up">
                     <Button className="w-full">Sign up</Button>
                   </Link>
                 </>
