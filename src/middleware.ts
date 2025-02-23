@@ -1,19 +1,19 @@
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "./lib/supabase/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
+  const supabase = await createClient();
 
   try {
     // Refresh session if expired
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { user }, error } = await supabase.auth.getUser();
     if (error) throw error;
 
     // Handle auth state
-    if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
-      const redirectUrl = new URL('/auth/login', req.url);
+    if (!user && req.nextUrl.pathname.startsWith('/dashboard')) {
+      const redirectUrl = new URL('/auth/sign-in', req.url);
       redirectUrl.searchParams.set('from', req.nextUrl.pathname);
       return NextResponse.redirect(redirectUrl);
     }
@@ -27,7 +27,7 @@ export async function middleware(req: NextRequest) {
       return res;
     }
     // Redirect to login on protected routes
-    return NextResponse.redirect(new URL('/auth/login', req.url));
+    return NextResponse.redirect(new URL('/auth/sign-in', req.url));
   }
 }
 
