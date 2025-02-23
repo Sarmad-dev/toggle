@@ -10,7 +10,7 @@ import { useUser } from "@/hooks/use-user";
 
 export function ProjectList() {
   const { projectColumns } = useProjectColumns();
-  const { user } = useUser();
+  const { user, isLoading: userLoading } = useUser();
 
   const {
     data: projects,
@@ -22,7 +22,7 @@ export function ProjectList() {
     enabled: !!user,
   });
 
-  if (isLoading) {
+  if (isLoading || userLoading) {
     return (
       <div className="flex h-screen justify-center items-center">
         <Loader2 className="animate-spin" size={32} />
