@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/hooks/use-user";
 import { DataTable } from "@/components/ui/data-table";
-import { Loader2 } from "lucide-react";
 import { timeEntryColumns } from "./columns/TimeEntryColumns";
 import { getUserProjectsTimeEntry } from "@/lib/actions/time-entries";
 import { Spinner } from "../ui";
