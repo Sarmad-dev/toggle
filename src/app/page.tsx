@@ -7,12 +7,14 @@ import { cn } from "@/lib/utils";
 import { SiteHeader } from "@/components/landing/site-header";
 import { features, testimonials } from "@/lib/constants";
 import { PreviewCarousel } from "@/components/landing/preview-carousel";
+import { useUser } from "@/hooks/use-user";
 
 // export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const supabaseServer = await createClient();
   const { data: { session } } = await supabaseServer.auth.getSession();
+  const { user: _ } = useUser()
 
   return (
     <div className="flex flex-col min-h-screen">

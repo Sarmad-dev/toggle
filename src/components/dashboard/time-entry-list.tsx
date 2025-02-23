@@ -6,9 +6,10 @@ import { DataTable } from "@/components/ui/data-table";
 import { Loader2 } from "lucide-react";
 import { timeEntryColumns } from "./columns/TimeEntryColumns";
 import { getUserProjectsTimeEntry } from "@/lib/actions/time-entries";
+import { Spinner } from "../ui";
 
 export function TimeEntryList() {
-  const { user } = useUser();
+  const { user, isLoading: userLoading } = useUser();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["timeEntries"],
@@ -16,12 +17,8 @@ export function TimeEntryList() {
     enabled: !!user,
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center">
-        <Loader2 className="h-4 w-4 animate-spin" />
-      </div>
-    );
+  if (isLoading || userLoading) {
+    return <Spinner />;
   }
 
   if (isError) {

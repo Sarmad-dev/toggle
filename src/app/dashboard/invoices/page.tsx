@@ -18,20 +18,11 @@ export default function InvoicesPage() {
     data: invoices,
     isLoading,
     error,
-    refetch,
   } = useQuery({
     queryKey: ["invoices"],
     queryFn: () => getInvoices(),
   });
 
-  // Refetch invoices every 30 seconds to check for overdue status
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refetch();
-    }, 30000);
-    
-    return () => clearInterval(interval);
-  }, [refetch]);
 
   if (isLoading) {
     return <Spinner />;
