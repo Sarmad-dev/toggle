@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { RealtimeManager } from "@/lib/realtime";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
+import { useUser } from "@/hooks/use-user";
 
 // export const dynamic = 'force-dynamic';
 
@@ -15,10 +16,8 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [userId, setUserId] = useState<string | null>(null);
-  supabase.auth
-    .getUser()
-    .then(({ data: user }) => setUserId(user.user?.id as string));
+  const { user } = useUser()
+  const userId = user?.id
 
   useEffect(() => {
     if (!userId) return;
