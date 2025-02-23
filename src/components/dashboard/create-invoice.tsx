@@ -255,7 +255,7 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
         );
 
       case "details":
-        return (
+  return (
           <div className="space-y-6">
             <h3 className="text-xl font-semibold">Invoice Details</h3>
             <FormField
@@ -608,4 +608,4 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
       </DialogContent>
     </Dialog>
   );
-}
+} 
