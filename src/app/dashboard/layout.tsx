@@ -3,10 +3,9 @@ import { Header } from "@/components/dashboard/header";
 import LeftSidebar from "@/components/dashboard/LeftSidebar";
 import queryClient from "@/lib/tanstack/queryClient";
 import { redirect } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { RealtimeManager } from "@/lib/realtime";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/use-user";
 
 // export const dynamic = 'force-dynamic';
