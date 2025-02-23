@@ -9,12 +9,11 @@ export async function middleware(req: NextRequest) {
   const supabase = createMiddlewareClient({ req, res });
 
   try {
-    // Refresh session if expired
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
+    // Get session, not just user
+    const { data: { session } } = await supabase.auth.getSession();
 
     // Handle auth state
-    if (!user && req.nextUrl.pathname.startsWith('/dashboard')) {
+    if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
       const redirectUrl = new URL('/auth/sign-in', req.url);
       redirectUrl.searchParams.set('from', req.nextUrl.pathname);
       return NextResponse.redirect(redirectUrl);
@@ -35,10 +34,11 @@ export async function middleware(req: NextRequest) {
     return response;
   } catch (error) {
     console.error('Middleware error:', error);
-    if (!req.nextUrl.pathname.startsWith('/dashboard')) {
-      return res;
+    // Only redirect to sign-in for dashboard routes
+    if (req.nextUrl.pathname.startsWith('/dashboard')) {
+      return NextResponse.redirect(new URL('/auth/sign-in', req.url));
     }
-    return NextResponse.redirect(new URL('/auth/sign-in', req.url));
+    return res;
   }
 }
 
@@ -51,7 +51,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - realtime (Supabase Realtime WebSocket)
+     * - images (newly added for images)
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|realtime).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|realtime|images).*)",
   ],
 };
