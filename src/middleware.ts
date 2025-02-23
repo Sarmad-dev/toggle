@@ -1,7 +1,6 @@
 
-import type { NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
+export async function middleware() {
   // const res = NextResponse.next();
   // const supabase = await createClient();
 
