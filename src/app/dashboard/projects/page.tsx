@@ -2,7 +2,7 @@
 import { CreateProject } from "@/components/dashboard/create-project";
 import { ProjectList } from "@/components/dashboard/project-list";
 
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 
 export default async function ProjectsPage() {
 

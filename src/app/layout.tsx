@@ -6,7 +6,7 @@ import QueryProvider from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

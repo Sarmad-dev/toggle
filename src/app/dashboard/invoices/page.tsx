@@ -9,7 +9,7 @@ import { InvoiceList } from "@/components/dashboard/invoice-list";
 import { CreateInvoice } from "@/components/dashboard/create-invoice";
 import { Spinner } from "@/components/ui/spinner";
 
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 
 export default function InvoicesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { signUpSchema } from "@/lib/validations/auth";
 import { createClient } from "@/lib/supabase/server";
 
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {

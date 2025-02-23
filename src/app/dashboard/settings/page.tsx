@@ -3,7 +3,7 @@ import { ProfileSettings } from "@/components/dashboard/settings/profile-setting
 import { BillingSettings } from "@/components/dashboard/settings/billing-settings";
 import { NotificationSettings } from "@/components/dashboard/settings/notification-settings";
 
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
   

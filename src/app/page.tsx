@@ -8,12 +8,11 @@ import { SiteHeader } from "@/components/landing/site-header";
 import { features, testimonials } from "@/lib/constants";
 import { PreviewCarousel } from "@/components/landing/preview-carousel";
 
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const supabaseServer = await createClient();
   const { data: { session } } = await supabaseServer.auth.getSession();
-  console.log("Session in page: ", session)
 
   return (
     <div className="flex flex-col min-h-screen">
