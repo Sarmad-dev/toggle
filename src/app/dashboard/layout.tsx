@@ -16,39 +16,38 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [userId, setUserId] = useState<string | null>(null);
+  supabase.auth
+    .getUser()
+    .then(({ data: user }) => setUserId(user.user?.id as string));
 
-  try {
-    supabase.auth
-      .getUser()
-      .then(({ data: user }) => setUserId(user.user?.id as string));
+  useEffect(() => {
+    if (!userId) return;
 
-    useEffect(() => {
-      if (!userId) return;
-
-      RealtimeManager.subscribeToNotifications(userId, (notification) => {
-        // Show notification toast
-        toast(notification.title, {
-          description: notification.message,
-        });
-
-        // Invalidate relevant queries based on notification type
-        switch (notification.type) {
-          case "PROJECT_INVITATION":
-            queryClient.invalidateQueries({ queryKey: ["projects"] });
-            break;
-          case "TASK_ASSIGNED":
-            queryClient.invalidateQueries({ queryKey: ["tasks"] });
-            break;
-        }
+    RealtimeManager.subscribeToNotifications(userId, (notification) => {
+      // Show notification toast
+      toast(notification.title, {
+        description: notification.message,
       });
 
-      return () => {
-        if (userId) {
-          RealtimeManager.unsubscribeFromNotifications(userId);
-        }
-      };
-    }, [userId]);
+      // Invalidate relevant queries based on notification type
+      switch (notification.type) {
+        case "PROJECT_INVITATION":
+          queryClient.invalidateQueries({ queryKey: ["projects"] });
+          break;
+        case "TASK_ASSIGNED":
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+          break;
+      }
+    });
 
+    return () => {
+      if (userId) {
+        RealtimeManager.unsubscribeFromNotifications(userId);
+      }
+    };
+  }, [userId]);
+
+  try {
     // await queryClient.prefetchQuery({ queryKey: ["all-projects"], queryFn: () => getProjects(user?.id as string) })
     // await queryClient.prefetchQuery({ queryKey: ["all-teams"], queryFn: () => getAllTeams()})
     // await queryClient.prefetchQuery({
@@ -84,6 +83,6 @@ export default function DashboardLayout({
     );
   } catch (error) {
     console.error("Dashboard layout error:", error);
-    return redirect("/auth/login");
+    return redirect("/auth/sign-in");
   }
 }
