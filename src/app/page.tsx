@@ -13,6 +13,7 @@ export const dynamic = 'force-dynamic';
 export default async function Home() {
   const supabaseServer = await createClient();
   const { data: { session } } = await supabaseServer.auth.getSession();
+  console.log("Session in page: ", session)
 
   return (
     <div className="flex flex-col min-h-screen">

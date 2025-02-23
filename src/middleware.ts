@@ -1,40 +1,33 @@
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createClient } from "./lib/supabase/server";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-  
-  // Use middleware client specifically for auth
-  const supabase = createMiddlewareClient({ req, res });
+  const supabase = await createClient()
 
   try {
-    // Get session, not just user
-    const { data: { session } } = await supabase.auth.getSession();
+    // Refresh the auth session
+    await supabase.auth.getSession();
 
-    // Handle auth state
-    if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
-      const redirectUrl = new URL('/auth/sign-in', req.url);
-      redirectUrl.searchParams.set('from', req.nextUrl.pathname);
-      return NextResponse.redirect(redirectUrl);
+    // Get the user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // console.log("User in middleware: ", user)
+
+    // Handle auth redirects
+    if (!user && req.nextUrl.pathname.startsWith('/dashboard')) {
+      return NextResponse.redirect(new URL('/auth/sign-in', req.url));
     }
 
-    // Important: Set the session cookie
-    const response = NextResponse.next({
-      request: {
-        headers: req.headers,
-      },
-    });
+    if (req.nextUrl.pathname.startsWith('/auth/sign-in')) {
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
 
-    // Set CORS headers for Supabase Realtime
-    response.headers.set('Access-Control-Allow-Origin', '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-    return response;
+    return res;
   } catch (error) {
-    console.error('Middleware error:', error);
-    // Only redirect to sign-in for dashboard routes
+    console.error('Auth error:', error);
     if (req.nextUrl.pathname.startsWith('/dashboard')) {
       return NextResponse.redirect(new URL('/auth/sign-in', req.url));
     }
@@ -44,15 +37,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api/auth (auth API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - realtime (Supabase Realtime WebSocket)
-     * - images (newly added for images)
-     */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|realtime|images).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/auth|realtime|images).*)",
   ],
 };
