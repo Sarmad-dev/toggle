@@ -10,7 +10,7 @@ import { useUser } from "@/hooks/use-user";
 
 export function ProjectList() {
   const { projectColumns } = useProjectColumns();
-  const { user } = useUser()
+  const { user } = useUser();
 
   const {
     data: projects,
@@ -19,7 +19,7 @@ export function ProjectList() {
   } = useQuery({
     queryKey: ["all-projects"],
     queryFn: async () => await getProjects(user?.id as string),
-    initialData: { success: true, data: [] },
+    enabled: !!user,
   });
 
   if (isLoading) {
@@ -39,11 +39,11 @@ export function ProjectList() {
   }
 
   return (
-        <DataTable
-          columns={projectColumns}
-          data={projects?.data as Project[]}
-          searchKey="name"
-          pageSize={10}
-        />
+    <DataTable
+      columns={projectColumns}
+      data={projects?.data as Project[]}
+      searchKey="name"
+      pageSize={10}
+    />
   );
 }

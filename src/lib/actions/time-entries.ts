@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getProjects } from "./projects";
 
 export async function createTimeEntry(data: {
   description: string;
@@ -35,6 +36,33 @@ export async function createTimeEntry(data: {
   } catch (error) {
     console.error("Failed to create time entry:", error);
     throw new Error("Failed to create time entry");
+  }
+}
+
+export const getUserProjectsTimeEntry = async (userId: string) => {
+  try {
+    const projects = await getProjects(userId)
+    const projectIds = projects.data?.map((project) => project.id)
+    const timeEntries = await prisma.timeEntry.findMany({
+      where: {
+        projectId: {
+          in: projectIds
+        }
+      },
+      include: {
+        project: true,
+        user: true
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    })
+
+    return { success: true, data: timeEntries}
+    
+    
+  } catch (error) {
+    console.error("Failed to fetch time entries: ", error)
   }
 }
 

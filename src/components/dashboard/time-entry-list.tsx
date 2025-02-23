@@ -5,14 +5,14 @@ import { useUser } from "@/hooks/use-user";
 import { DataTable } from "@/components/ui/data-table";
 import { Loader2 } from "lucide-react";
 import { timeEntryColumns } from "./columns/TimeEntryColumns";
-import { getTimeEntries } from "@/lib/actions/time-entries";
+import { getUserProjectsTimeEntry } from "@/lib/actions/time-entries";
 
 export function TimeEntryList() {
   const { user } = useUser();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["timeEntries"],
-    queryFn: async () => await getTimeEntries(user?.id as string),
+    queryFn: async () => await getUserProjectsTimeEntry(user?.id as string),
     enabled: !!user,
   });
 

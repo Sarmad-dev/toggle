@@ -5,7 +5,6 @@ import { ProjectList } from "@/components/dashboard/project-list";
 // export const dynamic = 'force-dynamic';
 
 export default async function ProjectsPage() {
-  console.log("PROJECT PAGE")
 
   return (
     <div className="space-y-8">
