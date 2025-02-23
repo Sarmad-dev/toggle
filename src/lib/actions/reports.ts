@@ -38,7 +38,10 @@ export async function getTimeTrackingStats(userId: string) {
     // Get active projects count
     const activeProjects = await prisma.project.count({
       where: {
-        userId,
+        OR: [
+          { managerId: userId, },
+          { members: { some: { userId }}}
+        ]
       },
     });
 
