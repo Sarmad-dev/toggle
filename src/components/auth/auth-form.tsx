@@ -16,7 +16,7 @@ import { FcGoogle } from "react-icons/fc";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 interface AuthFormProps<T extends z.ZodType> {
@@ -50,7 +50,6 @@ export function AuthForm<T extends z.ZodType>({
   });
 
   const handleGoogleSignIn = async () => {
-    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {

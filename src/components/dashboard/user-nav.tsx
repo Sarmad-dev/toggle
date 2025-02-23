@@ -14,7 +14,7 @@ import {
 import { useTheme } from "next-themes";
 import { Moon, Sun, User, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/use-user";
 import { toast } from "sonner";
 import { NotificationDropdown } from "@/components/notifications/notification-dropdown";
@@ -24,7 +24,6 @@ export function UserNav() {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const { user } = useUser();
-  const supabase = createClient();
   const queryClient = useQueryClient();
 
   const handleLogout = async () => {

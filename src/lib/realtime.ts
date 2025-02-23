@@ -1,11 +1,8 @@
 
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { ChatMessage, Notification } from "@prisma/client";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { toast } from "sonner";
-
-const supabase = createClient();
-
 export class RealtimeManager {
   private static channels: Map<string, RealtimeChannel> = new Map();
 
