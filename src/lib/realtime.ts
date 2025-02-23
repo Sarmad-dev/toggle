@@ -1,12 +1,11 @@
-
 import { supabase } from "@/lib/supabase/client";
 import { ChatMessage, Notification } from "@prisma/client";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { toast } from "sonner";
+
 export class RealtimeManager {
   private static channels: Map<string, RealtimeChannel> = new Map();
 
-  
   static async subscribeToProject(projectId: string, userId: string, callbacks: {
     onMessage?: (message: ChatMessage) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,10 +17,13 @@ export class RealtimeManager {
 
     const channel = supabase.channel(`project:${projectId}`, {
       config: {
-        presence: {
-          key: userId,
-        },
-      },
+        broadcast: { ack: true },
+        presence: { key: userId }
+      }
+    })
+    .on('system', { event: 'error' }, (error) => {
+      console.error('Realtime error:', error);
+      channel.subscribe();
     });
 
     // Subscribe to messages

@@ -11,7 +11,8 @@ export const supabase = createClient(
     },
     realtime: {
       params: {
-        eventsPerSecond: 2
+        eventsPerSecond: 1,
+        heartbeat_interval: 15000
       }
     }
   }
