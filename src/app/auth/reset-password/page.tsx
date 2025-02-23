@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { AuthForm } from "@/components/auth/auth-form";
-import { createClient } from "@/lib/supabase/client";
+import { supabase as supabaseClient } from "@/lib/supabase/client";
 import { resetPasswordSchema } from "@/lib/validations/auth";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -13,7 +13,6 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const [isValidLink, setIsValidLink] = useState(false);
   const [loading, setLoading] = useState(true);
-  const supabaseClient = createClient();
 
   useEffect(() => {
     const parseHashParams = () => {

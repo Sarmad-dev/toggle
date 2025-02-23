@@ -3,13 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { supabase as supabaseClient } from '@/lib/supabase/client'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
   const [verificationStatus, setVerificationStatus] = useState<'verifying' | 'verified' | 'error'>('verifying')
 
-  const supabaseClient = createClient()
   useEffect(() => {
     const handleEmailVerification = async () => {
       try {

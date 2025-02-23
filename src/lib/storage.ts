@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 
 export async function uploadFile(file: File, folder: string) {
-  const supabase= createClient()
+  const supabase = await createClient()
   try {
     const fileName = `${Date.now()}-${file.name}`;
     const filePath = `${folder}/${fileName}`;
