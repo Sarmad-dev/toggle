@@ -1,12 +1,12 @@
-"use client"
+"use client";
 import { Header } from "@/components/dashboard/header";
 import LeftSidebar from "@/components/dashboard/LeftSidebar";
 import queryClient from "@/lib/tanstack/queryClient";
 import { redirect } from "next/navigation";
-import { useUser } from "@/hooks/use-user";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { RealtimeManager } from "@/lib/realtime";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase/client";
 
 // export const dynamic = 'force-dynamic';
 
@@ -15,14 +15,17 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [userId, setUserId] = useState<string | null>(null);
 
   try {
-    const { user } = useUser()
+    supabase.auth
+      .getUser()
+      .then(({ data: user }) => setUserId(user.user?.id as string));
 
     useEffect(() => {
-      if (!user?.id) return;
-      
-      RealtimeManager.subscribeToNotifications(user.id, (notification) => {
+      if (!userId) return;
+
+      RealtimeManager.subscribeToNotifications(userId, (notification) => {
         // Show notification toast
         toast(notification.title, {
           description: notification.message,
@@ -40,15 +43,15 @@ export default function DashboardLayout({
       });
 
       return () => {
-        if (user?.id) {
-          RealtimeManager.unsubscribeFromNotifications(user.id);
+        if (userId) {
+          RealtimeManager.unsubscribeFromNotifications(userId);
         }
       };
-    }, [user?.id]);
+    }, [userId]);
 
     // await queryClient.prefetchQuery({ queryKey: ["all-projects"], queryFn: () => getProjects(user?.id as string) })
     // await queryClient.prefetchQuery({ queryKey: ["all-teams"], queryFn: () => getAllTeams()})
-    // await queryClient.prefetchQuery({ 
+    // await queryClient.prefetchQuery({
     //       queryKey: ["manager-teams"],
     //       queryFn: async () => await getManagerTeams(user?.id as string),
     //     }
