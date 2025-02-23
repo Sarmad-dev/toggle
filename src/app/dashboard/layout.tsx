@@ -19,9 +19,6 @@ export default function DashboardLayout({
   try {
     const { user } = useUser()
 
-    if (!user) {
-      return redirect("/auth/sign-in");
-    }
     useEffect(() => {
       if (!user?.id) return;
       
