@@ -19,7 +19,7 @@ import { useUser } from "@/hooks/use-user";
 import { uploadFile } from "@/lib/storage";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { updateUser } from "@/lib/actions/user";
 import { Spinner } from "@/components/ui";
 import {
