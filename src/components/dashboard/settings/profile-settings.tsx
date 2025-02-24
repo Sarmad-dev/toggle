@@ -60,15 +60,15 @@ export function ProfileSettings() {
     },
   });
 
-  useEffect(() => {
-    if (user) {
-      form.reset({
-        username: user.username,
-        name: user.name as string,
-      });
-      setPreview(user.image || "");
-    }
-  }, [user, form]);
+  // useEffect(() => {
+  //   if (user) {
+  //     form.reset({
+  //       username: user.username,
+  //       name: user.name as string,
+  //     });
+  //     setPreview(user.image || "");
+  //   }
+  // }, [user, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {

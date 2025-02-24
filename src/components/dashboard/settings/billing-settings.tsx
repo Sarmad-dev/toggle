@@ -35,6 +35,8 @@ export function BillingSettings() {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
+  console.log("USER: ", user)
+
   const handleUpgrade = async () => {
     setIsLoading(true);
     try {

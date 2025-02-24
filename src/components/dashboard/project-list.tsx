@@ -41,7 +41,7 @@ export function ProjectList() {
   return (
     <DataTable
       columns={projectColumns}
-      data={projects?.data as Project[]}
+      data={projects?.data as Project[] || []}
       searchKey="name"
       pageSize={10}
     />

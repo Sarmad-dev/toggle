@@ -292,17 +292,25 @@ export async function getFilteredReportData(filter: {
 
 export async function getBillableAmountReport() {
   // Example implementation using Prisma
-  const user = await getUser();
+  try {
+    const user = await getUser();
 
   const billableProjects = await prisma.project.findMany({
     where: { billable: true, managerId: user?.id },
     select: { name: true, billableAmount: true },
   });
 
+  if (!billableProjects) {
+    return { labels: [], values: [] }
+  }
+
   const labels = billableProjects.map((p) => p.name);
   const values = billableProjects.map((p) => p.billableAmount || 0);
 
   return { labels, values };
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 export async function getUserProjectTimeTracked() {
