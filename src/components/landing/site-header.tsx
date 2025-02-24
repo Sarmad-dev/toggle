@@ -70,10 +70,10 @@ export function SiteHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
               </Link>
             ) : (
               <div className="flex items-center space-x-4">
-                <Link href="/login">
+                <Link href="/auth/sign-in">
                   <Button variant="ghost">Log in</Button>
                 </Link>
-                <Link href="/signup">
+                <Link href="/auth/sign-up">
                   <Button>Sign up</Button>
                 </Link>
               </div>
