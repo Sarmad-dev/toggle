@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Line, Bar, Bubble } from "react-chartjs-2";
+import { Line, Bar } from "react-chartjs-2";
 import {
   Select,
   SelectContent,
@@ -28,7 +28,7 @@ export function ReportsList({ data }: ReportsListProps) {
   const [chartType, setChartType] = useState<"line" | "bar" | "bubble">("line");
 
   const ChartComponent =
-    chartType === "line" ? Line : chartType === "bubble" ? Bubble : Bar;
+    chartType === "line" ? Line : Bar;
 
   const reports = assembleReports(data);
 
@@ -76,13 +76,6 @@ export function ReportsList({ data }: ReportsListProps) {
                 onClick={() => setChartType("bar")}
               >
                 Bar
-              </Button>
-              <Button
-                variant={chartType === "bubble" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setChartType("bubble")}
-              >
-                Bubble
               </Button>
             </div>
           </div>

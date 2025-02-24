@@ -34,12 +34,13 @@ export default function SignUpPage() {
       })
       const data = (await response.json()) as { success: boolean; message: string }
       if (!response.ok) {
-        throw new Error(data.message || "Something went wrong")
+        toast.error(data.message || "Something went wrong")
       }
       return data
     },
     onSuccess: (data) => {
-      toast.success(data.message)
+      if (data.success) toast.success(data.message)
+        else toast.error(data.message)
     },
     onError: (error: Error) => {
       toast.error(error.message || "Sign up failed")

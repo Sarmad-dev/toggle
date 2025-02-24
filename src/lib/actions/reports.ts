@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { createClient } from "../supabase/server";
 import { getUser } from "./user";
+import { getProjects } from "./projects";
+import { getTeams } from "./teams";
 
 export async function getTimeTrackingStats(userId: string) {
   try {
@@ -11,9 +13,14 @@ export async function getTimeTrackingStats(userId: string) {
     const startDate = startOfMonth(subMonths(today, 11)); // Last 12 months
     const endDate = endOfMonth(today);
 
+    const projects = await getProjects(userId);
+    const projectIds = projects.data?.map((project) => project.id);
+
     const timeEntries = await prisma.timeEntry.findMany({
       where: {
-        userId,
+        projectId: {
+          in: projectIds,
+        },
         startTime: {
           gte: startDate,
           lte: endDate,
@@ -23,6 +30,7 @@ export async function getTimeTrackingStats(userId: string) {
         startTime: "asc",
       },
     });
+
     // Group entries by date and calculate hours
     const entriesByDate = timeEntries.reduce((acc, entry) => {
       const date = format(entry.startTime, "yyyy-MM-dd");
@@ -38,10 +46,7 @@ export async function getTimeTrackingStats(userId: string) {
     // Get active projects count
     const activeProjects = await prisma.project.count({
       where: {
-        OR: [
-          { managerId: userId, },
-          { members: { some: { userId }}}
-        ]
+        OR: [{ managerId: userId }, { members: { some: { userId } } }],
       },
     });
 
@@ -49,7 +54,7 @@ export async function getTimeTrackingStats(userId: string) {
     const projectMembers = await prisma.projectMember.findMany({
       where: {
         project: {
-          userId,
+          OR: [{ managerId: userId }, { members: { some: { userId } } }],
         },
       },
       select: {
@@ -273,6 +278,9 @@ export async function getFilteredReportData(filter: {
     } else if (filter.type === "teams" && filter.id) {
       const teamData = await getTeamTimeTracked(filter.id);
       return teamData;
+    } else if (filter.type === "teams") {
+      const teamData = await getUserTeamTimeTracked();
+      return teamData
     } else {
       throw new Error("Invalid filter");
     }
@@ -332,6 +340,31 @@ export async function getProjectTimeTracked(projectId: string) {
   );
 
   return { labels: ["Total Hours"], values: [totalHours] };
+}
+
+export async function getUserTeamTimeTracked() {
+  const user = await getUser();
+  const userTeams = await getTeams(user?.id as string);
+
+  const timeEntries = await prisma.timeEntry.findMany({
+    where: {
+      project: {
+        teamId: {
+          in: userTeams.data?.map((team) => team.id),
+        },
+      },
+    },
+    select: {
+      duration: true,
+    },
+  });
+
+  const totalHours = timeEntries.reduce(
+    (acc, entry) => acc + (entry.duration || 0) / 3600,
+    0
+  );
+
+  return { labels: ["Total Hours"], values: [totalHours] }
 }
 
 export async function getTeamTimeTracked(teamId: string) {
