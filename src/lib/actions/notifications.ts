@@ -65,32 +65,44 @@ export async function handleInvitation(data: {
 
 export async function getNotifications(userId: string | undefined) {
   if (!userId) return { success: true, data: [] };
-  
+
   try {
     const notifications = await prisma.notification.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
-    
+
     return { success: true, data: notifications };
   } catch (error) {
-    console.error("Failed to fetch notifications: ", error)
+    console.error("Failed to fetch notifications: ", error);
     throw new Error("Failed to fetch notifications");
   }
 }
 
-export async function markAsRead(userId: string | undefined) {
+export async function markAsRead(notificationId: string) {
+  try {
+    await prisma.notification.update({
+      where: { id: notificationId },
+      data: { read: true },
+    });
+  } catch (error) {
+    console.error("Failed to mark notification as read: ", error);
+    return { success: false, error: "Failed to mark notification as read" };
+  }
+}
+
+export async function markAllAsRead(userId: string | undefined) {
   if (!userId) return;
-  
+
   try {
     await prisma.notification.updateMany({
       where: { userId, read: false },
       data: { read: true },
     });
-    
+
     return { success: true };
   } catch (error) {
-    console.error("Failed to mark notifications as read: ", error)
+    console.error("Failed to mark notifications as read: ", error);
     return { success: false, error: "Failed to mark notifications as read" };
   }
-} 
+}

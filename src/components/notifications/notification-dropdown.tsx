@@ -24,10 +24,8 @@ export function NotificationDropdown() {
 
   const unreadCount = notifications?.data?.filter(n => !n.read).length || 0;
 
-  // TODO: Add realtime notifications and update the mark as read functionality
-
-  const handleAction = async () => {
-    await markAsRead(user?.id);
+  const handleAction = async (notificationId: string) => {
+    await markAsRead(notificationId);
     queryClient.invalidateQueries({ queryKey: ["notifications"] });
   };
 
@@ -43,7 +41,7 @@ export function NotificationDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-y-auto">
+      <DropdownMenuContent align="end" className="w-[450px] max-h-96 overflow-y-auto">
         {notifications?.data?.length === 0 ? (
           <div className="p-4 text-center text-sm text-muted-foreground">
             No notifications
@@ -60,7 +58,7 @@ export function NotificationDropdown() {
               data={notification.data as string}
               userId={notification.userId}
               createdAt={notification.createdAt}
-              handleMarkAsRead={handleAction}
+              handleMarkAsRead={() => handleAction(notification.id)}
             />
           ))
         )}
