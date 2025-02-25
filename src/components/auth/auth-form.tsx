@@ -50,12 +50,14 @@ export function AuthForm<T extends z.ZodType>({
   });
 
   const handleGoogleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error, data } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
       },
     });
+
+    console.log("URL from client",data.url)
 
     if (error) {
       console.error("Google sign-in error:", error);

@@ -8,6 +8,12 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
 
+  console.log("API CALLBACK ROUTE CALLED")
+
+  console.log("URL: ", request.url)
+
+  console.log("CODE: ", code)
+
   if (code) {
     const supabase = await createClient();
     try {
@@ -16,6 +22,8 @@ export async function GET(request: Request) {
         data: { session },
         error,
       } = await supabase.auth.exchangeCodeForSession(code);
+
+      console.log("SESSION: ", session)
 
       if (error || !session?.user) throw error || new Error("No session found");
 
