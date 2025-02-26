@@ -1,5 +1,7 @@
-import { create } from 'zustand';
-import { createTimeEntry } from '@/lib/actions/time-entries';
+import { create } from "zustand";
+import { createTimeEntry } from "@/lib/actions/time-entries";
+import { DateTime } from "luxon";
+import queryClient from "@/lib/tanstack/queryClient";
 
 interface TimerState {
   isRunning: boolean;
@@ -30,10 +32,12 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     if (projectId) {
       set({ selectedProjectId: projectId });
     }
-    set({ isRunning: true, startTime: new Date(), duration: 0 });
+    const localTime = DateTime.now().setZone("Asia/Karachi");
+    set({ isRunning: true, startTime: localTime.toJSDate(), duration: 0 });
   },
 
-  startTask: (taskId: string) => set({ isRunning: true, selectedTaskId: taskId }),
+  startTask: (taskId: string) =>
+    set({ isRunning: true, selectedTaskId: taskId }),
 
   stop: async (userId: string) => {
     const { startTime, description, selectedProjectId, duration } = get();
@@ -50,8 +54,9 @@ export const useTimerStore = create<TimerState>((set, get) => ({
           userId,
         });
         set({ description: "", duration: 0 });
+        queryClient.invalidateQueries({ queryKey: ["timeEntries"] });
       } catch (error) {
-        console.error('Failed to save time entry:', error);
+        console.error("Failed to save time entry:", error);
         throw error;
       }
     }
@@ -70,6 +75,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   },
 
   setDescription: (description: string) => set({ description }),
-  setSelectedProject: (projectId: string) => set({ selectedProjectId: projectId }),
+  setSelectedProject: (projectId: string) =>
+    set({ selectedProjectId: projectId }),
   tick: () => set((state) => ({ duration: state.duration + 1 })),
-})); 
+}));

@@ -6,6 +6,7 @@ import { createClient } from "../supabase/server";
 import { getUser } from "./user";
 import { getProjects } from "./projects";
 import { getTeams } from "./teams";
+import { DateTime } from "luxon";
 
 export async function getTimeTrackingStats(userId: string) {
   try {
@@ -31,8 +32,19 @@ export async function getTimeTrackingStats(userId: string) {
       },
     });
 
+    const updatedTimeEntries = timeEntries.map((entry) => {
+      const localTime = DateTime.fromJSDate(entry.startTime).setZone("Asia/Karachi")
+      return {
+        ...entry,
+        startTime: localTime.toJSDate(),
+      }
+    })
+
+    console.log("Time Entries: ",timeEntries)
+    console.log("Updated Time Entries: ", updatedTimeEntries)
+
     // Group entries by date and calculate hours
-    const entriesByDate = timeEntries.reduce((acc, entry) => {
+    const entriesByDate = updatedTimeEntries.reduce((acc, entry) => {
       const date = format(entry.startTime, "yyyy-MM-dd");
       const hours = Number((entry.duration! / 3600).toFixed(2));
 

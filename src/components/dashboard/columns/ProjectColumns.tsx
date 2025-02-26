@@ -39,7 +39,7 @@ export const useProjectColumns = () => {
             )}
             onClick={() => {
               if (isRunning && selectedProjectId === project.id) {
-                stop(user?.id as string);
+                stop();
               } else {
                 start(project.id);
               }

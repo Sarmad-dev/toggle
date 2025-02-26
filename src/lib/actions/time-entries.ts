@@ -58,6 +58,8 @@ export const getUserProjectsTimeEntry = async (userId: string) => {
       }
     })
 
+    console.log(timeEntries.map(entry => entry.createdAt))
+
     return { success: true, data: timeEntries}
     
     

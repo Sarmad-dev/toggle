@@ -36,10 +36,12 @@ export const timeEntryColumns: ColumnDef<TimeEntryColumn>[] = [
     },
   },
   {
-    accessorKey: "startTime",
+    accessorKey: "createdAt",
     id: "date",
     header: "Date",
-    cell: ({ row }) => format(new Date(row.original.startTime), "MMM dd, yyyy"),
+    cell: ({ row }) => {
+      return format(row.original.startTime, "MMM dd, yyyy")
+    },
   },
   {
     accessorKey: "startTime",

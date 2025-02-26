@@ -37,7 +37,7 @@ export function Timer() {
 
   const { data: projects } = useQuery({
     queryKey: ["projects"],
-    queryFn: () => getProjects(user?.id),
+    queryFn: () => getProjects(user?.id as string),
     enabled: !!user,
   });
 
@@ -91,7 +91,7 @@ export function Timer() {
           </PopoverContent>
         </Popover>
         <Button
-          onClick={() => (isRunning ? stop(user?.id) : start())}
+          onClick={() => (isRunning ? stop(user?.id as string) : start(selectedProjectId as string))}
           variant={isRunning ? "destructive" : "default"}
           size="icon"
           className={cn(
