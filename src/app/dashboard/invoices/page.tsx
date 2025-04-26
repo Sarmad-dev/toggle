@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { InvoiceList } from "@/components/dashboard/invoice-list";
 import { CreateInvoice } from "@/components/dashboard/create-invoice";
-import { Spinner } from "@/components/ui/spinner";
+import InvoicesLoader from "@/components/loaders/invoices-loader";
 
 // export const dynamic = 'force-dynamic';
 
@@ -25,7 +25,11 @@ export default function InvoicesPage() {
 
 
   if (isLoading) {
-    return <Spinner />;
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <InvoicesLoader />
+      </div>
+    )
   }
 
   if (error) {

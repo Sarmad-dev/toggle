@@ -1,13 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useUsers } from "@/hooks/use-users";
 import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useGetOrganization } from "@/hooks/organization/use-get-organization";
 
 interface AddMemberDialogProps {
   open: boolean;
@@ -16,17 +30,16 @@ interface AddMemberDialogProps {
   currentMembers: { id: string }[];
 }
 
-export function AddMemberDialog({ 
-  open, 
-  onOpenChange, 
+export function AddMemberDialog({
+  open,
+  onOpenChange,
   onAddMember,
-  currentMembers 
+  currentMembers,
 }: AddMemberDialogProps) {
-  const { data: usersData, isLoading } = useUsers();
+  const { users, isLoading } = useUsers();
+  const { organization } = useGetOrganization();
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const users = usersData?.data || [];
 
   const handleSelect = (userId: string) => {
     setSelectedUser(userId === selectedUser ? null : userId);
@@ -34,14 +47,14 @@ export function AddMemberDialog({
 
   const handleInvite = async () => {
     if (!selectedUser) return;
-    
+
     setIsSubmitting(true);
     try {
       await onAddMember(selectedUser);
       setSelectedUser(null);
       onOpenChange(false);
     } catch (error) {
-      console.error('Invitation error:', error);
+      console.error("Invitation error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -62,26 +75,35 @@ export function AddMemberDialog({
                 <div className="p-4 text-center">
                   <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                 </div>
-              ) : users?.filter(user => 
-                !currentMembers.some(member => member.id === user.id)
-              ).map((user) => (
-                <CommandItem
-                  key={user.id}
-                  onSelect={() => handleSelect(user.id)}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>{user.username[0]}</AvatarFallback>
-                  </Avatar>
-                  <span>{user.username}</span>
-                  <Check
-                    className={cn(
-                      "ml-auto h-4 w-4",
-                      selectedUser === user.id ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                </CommandItem>
-              ))}
+              ) : (
+                users
+                  ?.filter((user) =>
+                    organization?.data?.members.some(
+                      (member) => member.userId === user.id
+                    )
+                  )
+                  ?.filter(
+                    (user) =>
+                      !currentMembers.some((member) => member.id === user.id)
+                  )
+                  .map((user) => (
+                    <CommandItem
+                      key={user.id}
+                      onSelect={() => handleSelect(user.id)}
+                      className="flex items-center gap-2 cursor-pointer">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{user.username[0]}</AvatarFallback>
+                      </Avatar>
+                      <span>{user.username}</span>
+                      <Check
+                        className={cn(
+                          "ml-auto h-4 w-4",
+                          selectedUser === user.id ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                    </CommandItem>
+                  ))
+              )}
             </CommandGroup>
           </CommandList>
         </Command>
@@ -89,19 +111,18 @@ export function AddMemberDialog({
           <Button
             onClick={handleInvite}
             disabled={!selectedUser || isSubmitting}
-            className="w-full"
-          >
+            className="w-full">
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Sending Invitation...
               </>
             ) : (
-              'Send Invitation'
+              "Send Invitation"
             )}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-} 
+}

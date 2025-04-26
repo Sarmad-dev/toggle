@@ -17,8 +17,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,9 +24,12 @@ import { createTeamWithInvitations } from "@/lib/actions/teams";
 import { toast } from "sonner";
 import { Plus, Loader2 } from "lucide-react";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { useUsers } from "@/hooks/use-users";
-import { useProjects } from "@/hooks/use-projects";
+import { useProjects } from "@/hooks/projects/use-projects";
 import { useUser } from "@/hooks/use-user";
+import CustomInput from "../custom/custom-input";
+import CustomTextarea from "../custom/custom-textarea";
+import { MultiSelectOption } from "@/types/global";
+import { useGetOrganizationMembers } from "@/hooks/organization/use-get-organization-members";
 
 const formSchema = z.object({
   name: z.string().min(2, "Team name must be at least 2 characters"),
@@ -39,13 +40,9 @@ const formSchema = z.object({
 
 export function CreateTeam() {
   const [open, setOpen] = useState(false);
-  const { data: usersData } = useUsers();
+  const { members, isLoading: isMembersLoading } = useGetOrganizationMembers();
   const { user } = useUser();
-  const { data: projectsData } = useProjects();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const users = usersData?.data || [];
-  const projects = projectsData?.data || [];
+  const { projects, isLoading: isProjectLoading } = useProjects();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -59,7 +56,6 @@ export function CreateTeam() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      setIsSubmitting(true);
       const result = await createTeamWithInvitations({
         ...values,
       });
@@ -74,10 +70,10 @@ export function CreateTeam() {
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
-    } finally {
-      setIsSubmitting(false);
     }
   }
+
+  const isSubmitting = form.formState.isSubmitting;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -100,7 +96,7 @@ export function CreateTeam() {
                 <FormItem>
                   <FormLabel>Team Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter team name" {...field} />
+                    <CustomInput placeholder="Enter team name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -113,7 +109,10 @@ export function CreateTeam() {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Enter team description" {...field} />
+                    <CustomTextarea
+                      placeholder="Enter team description"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -128,14 +127,20 @@ export function CreateTeam() {
                   <FormControl>
                     <MultiSelect
                       placeholder="Select members"
-                      options={users
-                        .filter((u) => u.id !== user.id)
-                        .map((user) => ({
-                          value: user.id,
-                          label: user.username,
-                        }))}
+                      options={
+                        members
+                          ?.filter((u) => u.user.id !== user?.id)
+                          .map((user) => ({
+                            value: user.user.id,
+                            label: user.user.username,
+                            imageUrl: user.user.image,
+                            email: user.user.email,
+                          })) as MultiSelectOption[]
+                      }
                       selected={field.value}
                       onChange={field.onChange}
+                      width="w-[475px]"
+                      isLoading={isMembersLoading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -151,14 +156,18 @@ export function CreateTeam() {
                   <FormControl>
                     <MultiSelect
                       placeholder="Select projects"
-                      options={projects
-                        .filter((project) => project.managerId === user.id)
-                        .map((project) => ({
-                          value: project.id,
-                          label: project.name,
-                        }))}
+                      options={
+                        projects?.data
+                          ?.filter((project) => project.userId === user?.id)
+                          .map((project) => ({
+                            value: project.id,
+                            label: project.name,
+                          })) as MultiSelectOption[]
+                      }
                       selected={field.value!}
                       onChange={field.onChange}
+                      width="w-[475px]"
+                      isLoading={isProjectLoading}
                     />
                   </FormControl>
                   <FormMessage />

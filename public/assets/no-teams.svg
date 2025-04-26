@@ -1,0 +1,51 @@
+<svg width="430" height="450" viewBox="0 0 430 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Decorative Background Elements -->
+  <path d="M50 100 C50 50 100 0 150 0 C200 0 250 50 250 100" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4" opacity="0.3"/>
+  <path d="M180 350 C180 300 230 250 280 250 C330 250 380 300 380 350" stroke="#818CF8" stroke-width="2" stroke-dasharray="4 4" opacity="0.3"/>
+  
+  <!-- Team Circle -->
+  <circle cx="215" cy="180" r="120" stroke="#6366F1" stroke-width="2" stroke-opacity="0.4" fill="none" />
+  <circle cx="215" cy="180" r="100" stroke="#818CF8" stroke-width="2" stroke-opacity="0.5" fill="none" />
+  <circle cx="215" cy="180" r="80" stroke="#A5B4FC" stroke-width="2" stroke-opacity="0.6" fill="none" />
+  
+  <!-- Team Members -->
+  <!-- Person 1 -->
+  <circle cx="215" cy="120" r="20" fill="#4F46E5" fill-opacity="0.7" />
+  <path d="M215 140 L215 160" stroke="#818CF8" stroke-width="3" stroke-linecap="round" />
+  <path d="M195 150 L235 150" stroke="#818CF8" stroke-width="3" stroke-linecap="round" />
+  
+  <!-- Person 2 -->
+  <circle cx="165" cy="180" r="20" fill="#4F46E5" fill-opacity="0.7" />
+  <path d="M165 200 L165 220" stroke="#818CF8" stroke-width="3" stroke-linecap="round" />
+  <path d="M145 210 L185 210" stroke="#818CF8" stroke-width="3" stroke-linecap="round" />
+  
+  <!-- Person 3 -->
+  <circle cx="265" cy="180" r="20" fill="#4F46E5" fill-opacity="0.7" />
+  <path d="M265 200 L265 220" stroke="#818CF8" stroke-width="3" stroke-linecap="round" />
+  <path d="M245 210 L285 210" stroke="#818CF8" stroke-width="3" stroke-linecap="round" />
+  
+  <!-- Person 4 -->
+  <circle cx="215" cy="240" r="20" fill="#4F46E5" fill-opacity="0.7" />
+  <path d="M215 260 L215 280" stroke="#818CF8" stroke-width="3" stroke-linecap="round" />
+  <path d="M195 270 L235 270" stroke="#818CF8" stroke-width="3" stroke-linecap="round" />
+  
+  <!-- Connection Lines -->
+  <path d="M215 120 L165 180" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4" opacity="0.4" />
+  <path d="M215 120 L265 180" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4" opacity="0.4" />
+  <path d="M215 120 L215 240" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4" opacity="0.4" />
+  <path d="M165 180 L215 240" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4" opacity="0.4" />
+  <path d="M265 180 L215 240" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4" opacity="0.4" />
+  
+  <!-- Decorative Elements -->
+  <circle cx="80" cy="80" r="15" fill="#A5B4FC" opacity="0.6" />
+  <circle cx="350" cy="380" r="20" fill="#818CF8" opacity="0.6" />
+  <circle cx="100" cy="400" r="10" fill="#6366F1" opacity="0.6" />
+  
+  <!-- Abstract Lines -->
+  <path d="M50 400 Q215 380 380 400" stroke="#4F46E5" stroke-width="2" stroke-dasharray="4 4" opacity="0.4"/>
+  
+  <!-- Text -->
+  <text x="215" y="420" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" fill="#A5B4FC" font-weight="bold">
+    No teams yet
+  </text>
+</svg> 

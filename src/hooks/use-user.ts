@@ -4,15 +4,23 @@ import { useQuery } from "@tanstack/react-query";
 import { getUser } from "@/lib/actions/user";
 
 export function useUser() {
-
-  const { data: user, isLoading } = useQuery({
+  const {
+    data: user,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["user"],
     queryFn: async () => await getUser(),
-    staleTime: Infinity
+    staleTime: Infinity,
   });
 
   return {
-    user: user || null,
+    user,
     isLoading,
+    isError,
+    error,
+    refetch,
   };
-} 
+}

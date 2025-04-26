@@ -7,21 +7,32 @@ import { NotificationType } from "@prisma/client";
 import { createClient } from "../supabase/server";
 import { checkSubscriptionLimit } from "@/lib/subscription";
 import { getUser } from "./user";
+import { z } from "zod";
+import { createProjectFormSchema } from "../validations/project";
+import { generateInitialTasks } from "../openai/get-project-tasks";
 
-export async function createProject(data: {
-  name: string;
-  description?: string;
-  color?: string;
-  billable: boolean;
-  billableAmount?: number;
-  managerId: string;
+interface CreateProjectProps extends z.infer<typeof createProjectFormSchema> {
+  userId: string;
+  orgId: string;
   members: string[];
-  teamId?: string;
-}) {
-  const subscriptionCheck = await checkSubscriptionLimit(
-    data.managerId,
-    "projects"
-  );
+  teamId?: string | null;
+}
+
+export async function createProject(data: CreateProjectProps) {
+  const {
+    name,
+    orgId,
+    description,
+    color,
+    billable,
+    billableAmount,
+    userId,
+    members,
+    teamId,
+    dueDate,
+    isUseAI,
+  } = data;
+  const subscriptionCheck = await checkSubscriptionLimit(userId, "projects");
   if (!subscriptionCheck.allowed) {
     return {
       success: false,
@@ -34,32 +45,41 @@ export async function createProject(data: {
   try {
     const project = await prisma.project.create({
       data: {
-        name: data.name,
-        description: data.description,
-        color: data.color,
-        billable: data.billable,
-        billableAmount: data.billableAmount,
-        managerId: data.managerId,
-        userId: data.managerId,
-        teamId: data.teamId,
+        name,
+        orgId,
+        description,
+        color,
+        billable,
+        billableAmount,
+        userId,
+        teamId,
+        dueDate,
       },
     });
 
     // Only send invitations if members array is not empty
-    if (data.members.length > 0) {
+    if (members.length > 0) {
       await Promise.all(
-        data.members.map((userId) =>
+        data.members.map((uId) =>
           createProjectInvitation({
             projectId: project.id,
-            userId,
-            invitedBy: data.managerId,
+            invitedUserId: uId,
+            invitedByUserId: data.userId,
           })
         )
       );
     }
 
-    revalidatePath("/dashboard/projects");
-    return { success: true, data: project };
+    if (isUseAI) {
+      const tasks = await generateInitialTasks(
+        project.name,
+        project?.description as string
+      );
+
+      return { success: true, data: { project, tasks } };
+    }
+
+    return { success: true, data: { project } };
   } catch (error) {
     console.error("Project creation error:", error);
     return { success: false, error: "Failed to create project" };
@@ -71,7 +91,7 @@ export async function getProjects(userId: string) {
     const projects = await prisma.project.findMany({
       where: {
         OR: [
-          { managerId: userId },
+          { userId: userId },
           {
             members: {
               some: {
@@ -142,10 +162,10 @@ export async function getProjectMembers(projectId: string) {
     const members = await prisma.projectMember.findMany({
       where: { projectId },
       include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
+        user: true,
+        project: {
+          include: {
+            user: true,
           },
         },
       },
@@ -153,7 +173,7 @@ export async function getProjectMembers(projectId: string) {
 
     return {
       success: true,
-      data: members.map((m) => ({ id: m.userId, username: m.user.username })),
+      data: members,
     };
   } catch (error) {
     console.error("Failed to fetch project members: ", error);
@@ -199,8 +219,8 @@ export async function addProjectMember(data: {
     const invitation = await prisma.projectInvitation.create({
       data: {
         projectId: data.projectId,
-        userId: data.userId,
-        invitedById: invitingUser.id,
+        invitedUserId: data.userId,
+        invitedByUserId: invitingUser.id,
         status: "PENDING",
       },
     });
@@ -239,6 +259,7 @@ export async function acceptProjectInvitation(invitationId: string) {
             },
           },
         },
+        user: true,
       },
     });
 
@@ -246,7 +267,7 @@ export async function acceptProjectInvitation(invitationId: string) {
     await prisma.projectMember.create({
       data: {
         projectId: invitation.projectId,
-        userId: invitation.userId,
+        userId: invitation.user.id,
       },
     });
 
@@ -265,7 +286,6 @@ export async function acceptProjectInvitation(invitationId: string) {
       )
     );
 
-    revalidatePath(`/dashboard/projects/${invitation.projectId}`);
     return { success: true, data: invitation };
   } catch (error) {
     console.error("Failed to accept invitation:", error);
@@ -314,10 +334,10 @@ export async function updateProject(
 
 export const getManagerProjects = async () => {
   try {
-    const manager = await getUser()
+    const manager = await getUser();
     const projectsCount = await prisma.project.findMany({
       where: {
-        managerId: manager?.id,
+        userId: manager?.id,
       },
     });
 
@@ -330,7 +350,7 @@ export const getManagerProjects = async () => {
 
 export const getProjectMemberships = async () => {
   try {
-    const user = await getUser()
+    const user = await getUser();
     const projectMembers = await prisma.projectMember.findMany({
       where: {
         userId: user?.id,

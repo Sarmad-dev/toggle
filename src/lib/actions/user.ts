@@ -24,7 +24,8 @@ export const getUser = async () => {
         email: authUser?.email
       },
       include: {
-        subscription: true
+        subscription: true,
+        organizationOwner: true
       }
     })
 

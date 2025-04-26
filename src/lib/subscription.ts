@@ -2,7 +2,7 @@ import { prisma } from "./prisma";
 
 export const SUBSCRIPTION_LIMITS = {
   FREE: {
-    maxProjects: 2,
+    maxProjects: 10,
     maxMembersPerProject: 5,
     maxTasksPerProject: 5,
   },
@@ -13,7 +13,11 @@ export const SUBSCRIPTION_LIMITS = {
   },
 };
 
-export async function checkSubscriptionLimit(userId: string, type: 'projects' | 'members' | 'tasks', projectId?: string) {
+export async function checkSubscriptionLimit(
+  userId: string,
+  type: "projects" | "members" | "tasks",
+  projectId?: string
+) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
@@ -21,21 +25,23 @@ export async function checkSubscriptionLimit(userId: string, type: 'projects' | 
     },
   });
 
-  if (!user) throw new Error('User not found');
+  if (!user) throw new Error("User not found");
 
-  const limits = SUBSCRIPTION_LIMITS[user.plan as keyof typeof SUBSCRIPTION_LIMITS];
+  const limits =
+    SUBSCRIPTION_LIMITS[user.plan as keyof typeof SUBSCRIPTION_LIMITS];
 
   switch (type) {
-    case 'projects':
+    case "projects":
       if (user.projects.length >= limits.maxProjects) {
         return {
           allowed: false,
-          message: 'You have reached the maximum number of projects for your plan',
+          message:
+            "You have reached the maximum number of projects for your plan",
         };
       }
       break;
 
-    case 'members':
+    case "members":
       if (projectId) {
         const memberCount = await prisma.projectMember.count({
           where: { projectId },
@@ -43,13 +49,14 @@ export async function checkSubscriptionLimit(userId: string, type: 'projects' | 
         if (memberCount >= limits.maxMembersPerProject) {
           return {
             allowed: false,
-            message: 'You have reached the maximum number of members for this project',
+            message:
+              "You have reached the maximum number of members for this project",
           };
         }
       }
       break;
 
-    case 'tasks':
+    case "tasks":
       if (projectId) {
         const tasks = await prisma.task.count({
           where: { projectId },
@@ -57,7 +64,8 @@ export async function checkSubscriptionLimit(userId: string, type: 'projects' | 
         if (tasks >= limits.maxTasksPerProject) {
           return {
             allowed: false,
-            message: 'You have reached the maximum number of tasks for this project',
+            message:
+              "You have reached the maximum number of tasks for this project",
           };
         }
       }
@@ -65,4 +73,4 @@ export async function checkSubscriptionLimit(userId: string, type: 'projects' | 
   }
 
   return { allowed: true };
-} 
+}

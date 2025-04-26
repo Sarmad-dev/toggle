@@ -1,16 +1,25 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { signUpSchema } from "@/lib/validations/auth";
+import { SignUpFormData, signUpSchema } from "@/lib/validations/auth";
 import { createClient } from "@/lib/supabase/server";
-
-// export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
     const supabaseServer = await createClient();
-    const body = await req.json();
-    const { email, username, password } = signUpSchema.parse(body);
+    const body = (await req.json()) as SignUpFormData;
+    const data = signUpSchema.safeParse(body);
+
+    if (data.error) {
+      return {
+        success: false,
+        message: "Validation Error",
+      };
+    }
+
+    const { email, username, password } = data.data;
+
+    const hashedPassword = await hash(password, 12);
 
     // Check if user exists
     const existingUser = await prisma.user.findFirst({
@@ -26,64 +35,42 @@ export async function POST(req: Request) {
       },
     });
 
-    if (existingUser && existingUser?.accounts[0].type !== "oauth") {
+    if (
+      existingUser &&
+      existingUser?.accounts.filter((account) => account.type === "credentials").length > 0
+    ) {
       return NextResponse.json(
         { success: false, message: "User already exists" },
         { status: 400 }
       );
-    }
-
-    if (existingUser?.accounts[0].type === "oauth") {
-      const { data: authData, error: authError } =
-        await supabaseServer.auth.updateUser({
-          password,
-        });
-
-      const hashedPassword = await hash(password, 12);
-      await prisma.user.upsert({
-        where: { email },
-        create: {
-          email,
-          username,
-          password: hashedPassword,
-          accounts: {
-            create: [
-              {
-                type: "credentials",
-                provider: "email",
-                providerAccountId: authData.user?.id || "",
-              },
-            ],
-          },
+    } else if (
+      existingUser &&
+      existingUser?.accounts.filter((account) => account.type !== "credentials")
+    ) {
+      await prisma.user.update({
+        where: {
+          id: existingUser?.id,
         },
-        update: {
-          username,
+        data: {
           password: hashedPassword,
-          accounts: {
-            create: {
-              type: "credentials",
-              provider: "email",
-              providerAccountId: authData.user?.id || "",
-            },
-          },
+          username
         },
       });
 
-      if (authError) {
-        return NextResponse.json(
-          { success: false, message: authError.message },
-          { status: 400 }
-        );
-      }
+      await supabaseServer.auth.admin.updateUserById(existingUser.authId,{
+        password,
+      });
 
-      if (authData.user) {
-        return NextResponse.json(
-          { success: true, message: "User created successfully" },
-          { status: 201 }
-        );
-      }
+      await prisma.account.create({
+        data: {
+          userId: existingUser.id,
+          type: "credentials",
+          provider: "email",
+          providerAccountId: existingUser.id,
+        },
+      });
 
-      return;
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard`)
     }
 
     // Create Supabase auth user
@@ -111,11 +98,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // Hash password and create user in database
-    const hashedPassword = await hash(password, 12);
     await prisma.user.create({
       data: {
         email,
+        authId: authData.user.id,
         username,
         password: hashedPassword,
         accounts: {

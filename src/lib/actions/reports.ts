@@ -33,15 +33,17 @@ export async function getTimeTrackingStats(userId: string) {
     });
 
     const updatedTimeEntries = timeEntries.map((entry) => {
-      const localTime = DateTime.fromJSDate(entry.startTime).setZone("Asia/Karachi")
+      const localTime = DateTime.fromJSDate(entry.startTime).setZone(
+        "Asia/Karachi"
+      );
       return {
         ...entry,
         startTime: localTime.toJSDate(),
-      }
-    })
+      };
+    });
 
-    console.log("Time Entries: ",timeEntries)
-    console.log("Updated Time Entries: ", updatedTimeEntries)
+    console.log("Time Entries: ", timeEntries);
+    console.log("Updated Time Entries: ", updatedTimeEntries);
 
     // Group entries by date and calculate hours
     const entriesByDate = updatedTimeEntries.reduce((acc, entry) => {
@@ -58,7 +60,7 @@ export async function getTimeTrackingStats(userId: string) {
     // Get active projects count
     const activeProjects = await prisma.project.count({
       where: {
-        OR: [{ managerId: userId }, { members: { some: { userId } } }],
+        OR: [{ userId: userId }, { members: { some: { userId } } }],
       },
     });
 
@@ -66,7 +68,7 @@ export async function getTimeTrackingStats(userId: string) {
     const projectMembers = await prisma.projectMember.findMany({
       where: {
         project: {
-          OR: [{ managerId: userId }, { members: { some: { userId } } }],
+          OR: [{ userId: userId }, { members: { some: { userId } } }],
         },
       },
       select: {
@@ -125,7 +127,7 @@ export async function getBillableAmount(userId: string) {
   try {
     const billableProjects = await prisma.project.findMany({
       where: {
-        managerId: userId,
+        userId: userId,
         billable: true,
       },
       select: {
@@ -166,7 +168,7 @@ export async function getTotalMembers(userId: string) {
     const projectMembers = await prisma.projectMember.findMany({
       where: {
         project: {
-          managerId: userId,
+          userId: userId,
         },
       },
       select: {
@@ -198,7 +200,7 @@ export async function getTotalProjectsCurrentMonth(userId: string) {
 
     const totalProjects = await prisma.project.count({
       where: {
-        managerId: userId,
+        userId: userId,
         createdAt: {
           gte: startDate,
           lte: endDate,
@@ -218,60 +220,60 @@ export async function getTotalProjectsCurrentMonth(userId: string) {
   }
 }
 
-export async function getRevenueStats(
-  userId: string,
-  startDate: Date,
-  endDate: Date
-) {
-  try {
-    const invoices = await prisma.invoice.findMany({
-      where: {
-        userId,
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      include: {
-        services: true,
-      },
-    });
+// export async function getRevenueStats(
+//   userId: string,
+//   startDate: Date,
+//   endDate: Date
+// ) {
+//   try {
+//     const invoices = await prisma.invoice.findMany({
+//       where: {
+//         ,
+//         createdAt: {
+//           gte: startDate,
+//           lte: endDate,
+//         },
+//       },
+//       include: {
+//         services: true,
+//       },
+//     });
 
-    const totalRevenue = invoices.reduce(
-      (acc, invoice) =>
-        acc +
-        invoice.services.reduce(
-          (acc, service) => acc + Number(service.total),
-          0
-        ),
-      0
-    );
+//     const totalRevenue = invoices.reduce(
+//       (acc, invoice) =>
+//         acc +
+//         invoice.services.reduce(
+//           (acc, service) => acc + Number(service.total),
+//           0
+//         ),
+//       0
+//     );
 
-    const paidRevenue = invoices
-      .filter((invoice) => invoice.status === "PAID")
-      .reduce(
-        (acc, invoice) =>
-          acc +
-          invoice.services.reduce(
-            (acc, service) => acc + Number(service.total),
-            0
-          ),
-        0
-      );
+//     const paidRevenue = invoices
+//       .filter((invoice) => invoice.status === "PAID")
+//       .reduce(
+//         (acc, invoice) =>
+//           acc +
+//           invoice.services.reduce(
+//             (acc, service) => acc + Number(service.total),
+//             0
+//           ),
+//         0
+//       );
 
-    return {
-      success: true,
-      data: {
-        totalRevenue,
-        paidRevenue,
-        outstandingRevenue: totalRevenue - paidRevenue,
-      },
-    };
-  } catch (error) {
-    console.error("Failed to fetch revenue stats: ", error);
-    return { success: false, error: "Failed to fetch revenue stats" };
-  }
-}
+//     return {
+//       success: true,
+//       data: {
+//         totalRevenue,
+//         paidRevenue,
+//         outstandingRevenue: totalRevenue - paidRevenue,
+//       },
+//     };
+//   } catch (error) {
+//     console.error("Failed to fetch revenue stats: ", error);
+//     return { success: false, error: "Failed to fetch revenue stats" };
+//   }
+// }
 
 export async function getFilteredReportData(filter: {
   type: "projects" | "teams" | "billable";
@@ -292,7 +294,7 @@ export async function getFilteredReportData(filter: {
       return teamData;
     } else if (filter.type === "teams") {
       const teamData = await getUserTeamTimeTracked();
-      return teamData
+      return teamData;
     } else {
       throw new Error("Invalid filter");
     }
@@ -307,21 +309,21 @@ export async function getBillableAmountReport() {
   try {
     const user = await getUser();
 
-  const billableProjects = await prisma.project.findMany({
-    where: { billable: true, managerId: user?.id },
-    select: { name: true, billableAmount: true },
-  });
+    const billableProjects = await prisma.project.findMany({
+      where: { billable: true, userId: user?.id },
+      select: { name: true, billableAmount: true },
+    });
 
-  if (!billableProjects) {
-    return { labels: [], values: [] }
-  }
+    if (!billableProjects) {
+      return { labels: [], values: [] };
+    }
 
-  const labels = billableProjects.map((p) => p.name);
-  const values = billableProjects.map((p) => p.billableAmount || 0);
+    const labels = billableProjects.map((p) => p.name);
+    const values = billableProjects.map((p) => p.billableAmount || 0);
 
-  return { labels, values };
+    return { labels, values };
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 }
 
@@ -384,7 +386,7 @@ export async function getUserTeamTimeTracked() {
     0
   );
 
-  return { labels: ["Total Hours"], values: [totalHours] }
+  return { labels: ["Total Hours"], values: [totalHours] };
 }
 
 export async function getTeamTimeTracked(teamId: string) {
@@ -424,7 +426,7 @@ export async function getAllProjects() {
     }
 
     const projects = await prisma.project.findMany({
-      where: { managerId: user.id },
+      where: { userId: user.id },
       select: { id: true, name: true },
     });
 

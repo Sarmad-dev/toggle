@@ -8,7 +8,6 @@ import {
   getAllTeams,
 } from "@/lib/actions/reports";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/use-user";
 import { ReportsList } from "@/components/dashboard/reports-list";
@@ -27,11 +26,11 @@ import {
   ArcElement,
   Filler,
 } from "chart.js";
-import { Spinner } from "@/components/ui/spinner";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FilterType, FilteredChartData, ReportData } from "@/types/global";
 import { downloadAsPDF } from "@/lib/pdf-generator";
+import ReportsLoader from "@/components/loaders/reports-loader";
 
 // export const dynamic = 'force-dynamic';
 
@@ -103,13 +102,10 @@ export default function ReportsPage() {
 
   const { type: filterType, id: filterId, chartType } = filter;
 
-  if (
-    userLoading ||
-    timeLoading
-  ) {
+  if (userLoading || timeLoading) {
     return (
-      <div className="flex items-center justify-center w-full min-h-screen">
-        <Loader2 className="animate-spin" />
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <ReportsLoader />
       </div>
     );
   }
@@ -174,7 +170,7 @@ export default function ReportsPage() {
           </div>
 
           {isLoading ? (
-            <Spinner />
+            <Loader2 className="animate-spin" />
           ) : chartData ? (
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               {filterType === "billable" && chartType === "pie" && (
@@ -338,46 +334,6 @@ export default function ReportsPage() {
                             backgroundColor: "#36A2EB",
                             borderColor: "#36A2EB",
                             fill: false,
-                          },
-                        ],
-                      }}
-                      options={{
-                        responsive: true,
-                        plugins: {
-                          legend: {
-                            position: "top",
-                          },
-                          title: {
-                            display: true,
-                            text:
-                              filterType === "projects"
-                                ? "Time Tracked per Project"
-                                : "Time Tracked per Team",
-                          },
-                        },
-                      }}
-                    />
-                  </div>
-                )}
-
-              {(filterType === "projects" || filterType === "teams") &&
-                chartType === "area" && (
-                  <div className="bg-background p-4 rounded-md shadow">
-                    <h3 className="text-lg font-medium mb-2">
-                      {filterType === "projects"
-                        ? "Project Time Tracked"
-                        : "Team Time Tracked"}
-                    </h3>
-                    <Line
-                      data={{
-                        labels: chartData.labels,
-                        datasets: [
-                          {
-                            label: "Hours Tracked",
-                            data: chartData.values,
-                            backgroundColor: "rgba(54, 162, 235, 0.2)",
-                            borderColor: "#36A2EB",
-                            fill: true,
                           },
                         ],
                       }}

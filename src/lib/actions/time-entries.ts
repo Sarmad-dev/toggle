@@ -20,11 +20,11 @@ export async function createTimeEntry(data: {
         endTime: data.endTime,
         duration: data.duration,
         project: {
-          connect: { id: data.projectId }
+          connect: { id: data.projectId },
         },
         user: {
-          connect: { id: data.userId }
-        }
+          connect: { id: data.userId },
+        },
       },
       include: {
         project: true,
@@ -41,32 +41,32 @@ export async function createTimeEntry(data: {
 
 export const getUserProjectsTimeEntry = async (userId: string) => {
   try {
-    const projects = await getProjects(userId)
-    const projectIds = projects.data?.map((project) => project.id)
+    const projects = await getProjects(userId);
+    const projectIds = projects.data?.map((project) => project.id);
     const timeEntries = await prisma.timeEntry.findMany({
       where: {
         projectId: {
-          in: projectIds
-        }
+          in: projectIds,
+        },
       },
       include: {
         project: true,
-        user: true
+        user: true,
       },
       orderBy: {
-        createdAt: "desc"
-      }
-    })
+        createdAt: "desc",
+      },
+    });
 
-    console.log(timeEntries.map(entry => entry.createdAt))
+    if (timeEntries.length === 0) {
+      return { success: true, data: [] };
+    }
 
-    return { success: true, data: timeEntries}
-    
-    
+    return { success: true, data: timeEntries };
   } catch (error) {
-    console.error("Failed to fetch time entries: ", error)
+    console.error("Failed to fetch time entries: ", error);
   }
-}
+};
 
 export async function getTimeEntries(userId: string | undefined) {
   if (!userId) {
@@ -82,12 +82,12 @@ export async function getTimeEntries(userId: string | undefined) {
             project: {
               members: {
                 some: {
-                  userId: userId
-                }
-              }
-            }
-          } // Time entries from projects where user is a member
-        ]
+                  userId: userId,
+                },
+              },
+            },
+          }, // Time entries from projects where user is a member
+        ],
       },
       include: {
         project: {
@@ -100,11 +100,11 @@ export async function getTimeEntries(userId: string | undefined) {
         user: {
           select: {
             username: true,
-          }
-        }
+          },
+        },
       },
       orderBy: {
-        startTime: 'desc',
+        startTime: "desc",
       },
     });
 
@@ -113,4 +113,4 @@ export async function getTimeEntries(userId: string | undefined) {
     console.error("Failed to fetch time entries:", error);
     throw new Error("Failed to fetch time entries");
   }
-} 
+}

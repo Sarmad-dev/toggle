@@ -3,8 +3,12 @@ import { ProjectHeader } from "@/components/dashboard/project-header";
 import { ProjectTabs } from "@/components/dashboard/project-tabs";
 import { notFound } from "next/navigation";
 
-export default async function ProjectPage({ params }: { params: Promise<{ projectId: string}>}) {
-  const { projectId } = await params
+export default async function ProjectPage({
+  params,
+}: {
+  params: Promise<{ projectId: string }>;
+}) {
+  const { projectId } = await params;
   const { data: project, error } = await getProject(projectId);
 
   if (error || !project) {
@@ -15,7 +19,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
     <div className="space-y-6">
       <ProjectHeader project={project} />
 
-      
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border p-4">
           <div className="text-sm font-medium text-muted-foreground">Tasks</div>
@@ -41,7 +44,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
         </div>
       </div>
 
-      <ProjectTabs project={project} />
+      <ProjectTabs
+        project={{ ...project, managerId: project.userId as string }}
+      />
     </div>
   );
 }

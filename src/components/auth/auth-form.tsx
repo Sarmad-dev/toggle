@@ -57,7 +57,7 @@ export function AuthForm<T extends z.ZodType>({
       },
     });
 
-    console.log("URL from client",data.url)
+    console.log("URL from client", data.url);
 
     if (error) {
       console.error("Google sign-in error:", error);
@@ -70,113 +70,100 @@ export function AuthForm<T extends z.ZodType>({
   const isSubmitting = form.formState.isSubmitting;
 
   return (
-    <div className="w-full max-w-[450px] relative z-10 px-4 sm:px-0">
-      <div
-        className="w-full max-w-[450px] space-y-8 p-8 rounded-xl shadow-lg 
-        bg-[#F8F9FB] dark:bg-[#1F2937] 
-        border border-[#E5E7EB] dark:border-[#374151]"
-      >
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {formFields.map((field) => (
-              <FormField
-                key={field.name.toString()}
-                control={form.control}
-                name={field.name}
-                render={({ field: formField }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground">
-                      {field.label}
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type={field.type}
-                        {...formField}
-                        className="h-11 
-                          bg-[#EDF2F7] dark:bg-[#2D3748] 
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {formFields.map((field) => (
+          <FormField
+            key={field.name.toString()}
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel className="text-foreground">{field.label}</FormLabel>
+                <FormControl>
+                  <Input
+                    type={field.type}
+                    {...formField}
+                    className="h-11 
+                          bg-secondary 
                           border-[#E2E8F0] dark:border-[#4A5568]
-                          focus:border-[#8B7355] dark:focus:border-[#8B7355]
-                          hover:border-[#8B7355]/50 dark:hover:border-[#8B7355]/50
                           placeholder:text-[#A0AEC0] dark:placeholder:text-[#718096]
                           transition-colors"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ))}
-
-            <div className="flex w-full justify-between">
-              {type === "SignUp" ? (
-                <p className="text-sm text-[#8B7355]">
-                  Already account?{" "}
-                  <Link href="/auth/sign-in" className="hover:underline">
-                    Sign In
-                  </Link>
-                </p>
-              ) : type === "SignIn" ? (
-                <p className="text-sm text-[#8B7355]">
-                  No Account?{" "}
-                  <Link href="/auth/sign-up" className="hover:underline">
-                    Sign Up
-                  </Link>
-                </p>
-              ) : (
-                <p className="text-sm text-[#8B7355]">
-                  Remember Password?{" "}
-                  <Link href="/auth/sign-in" className="hover:underline">
-                    Sign In
-                  </Link>
-                </p>
-              )}
-
-              {showForgotPassword && (
-                <div className="flex justify-end">
-                  <Link
-                    href="/auth/forgot-password"
-                    className="text-sm text-[#8B7355] hover:text-[#4A3728] transition-colors"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full h-11 bg-gradient-to-r from-[#8B7355] to-[#4A3728] hover:from-[#8B7355]/90 hover:to-[#4A3728]/90 transition-all duration-300"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Please wait
-                </>
-              ) : (
-                submitButtonText
-              )}
-            </Button>
-
-            {showGoogleSignIn && (
-              <Button
-                type="button"
-                variant="outline"
-                className={cn(
-                  "w-full h-11 mt-4 flex items-center justify-center gap-2",
-                  "transition-all duration-200 hover:scale-[1.02]",
-                  "hover:shadow-md dark:hover:shadow-primary/20",
-                  "border-[#8B7355]/20 hover:border-[#8B7355]/50"
-                )}
-                onClick={handleGoogleSignIn}
-              >
-                <FcGoogle className="w-5 h-5" />
-                Continue with Google
-              </Button>
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </form>
-        </Form>
-      </div>
-    </div>
+          />
+        ))}
+
+        <div className="flex w-full justify-between">
+          {type === "SignUp" ? (
+            <p className="text-sm text-primary">
+              Already account?{" "}
+              <Link href="/auth/sign-in" className="hover:underline">
+                Sign In
+              </Link>
+            </p>
+          ) : type === "SignIn" ? (
+            <p className="text-sm text-primary">
+              No Account?{" "}
+              <Link href="/auth/sign-up" className="hover:underline">
+                Sign Up
+              </Link>
+            </p>
+          ) : (
+            <p className="text-sm text-primary">
+              Remember Password?{" "}
+              <Link href="/auth/sign-in" className="hover:underline">
+                Sign In
+              </Link>
+            </p>
+          )}
+
+          {showForgotPassword && (
+            <div className="flex justify-end">
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+          )}
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full h-11 bg-secondary hover:bg-secondary/80 transition-all duration-300 text-black dark:text-white"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Please wait
+            </>
+          ) : (
+            submitButtonText
+          )}
+        </Button>
+
+        {showGoogleSignIn && (
+          <Button
+            type="button"
+            variant="outline"
+            className={cn(
+              "w-full h-11 mt-4 flex items-center justify-center gap-2",
+              "transition-all duration-200 hover:scale-[1.02]",
+              "hover:shadow-md dark:hover:shadow-primary/20"
+            )}
+            onClick={handleGoogleSignIn}
+          >
+            <FcGoogle className="w-5 h-5" />
+            Continue with Google
+          </Button>
+        )}
+      </form>
+    </Form>
   );
 }

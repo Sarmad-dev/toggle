@@ -6,7 +6,7 @@ import { NotificationSettings } from "@/components/dashboard/settings/notificati
 // export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
-  
+
   return (
     <div className="space-y-8">
       <script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>

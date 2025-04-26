@@ -1,0 +1,44 @@
+<svg width="430" height="450" viewBox="0 0 430 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Decorative Background Elements -->
+  <path d="M50 100 C50 50 100 0 150 0 C200 0 250 50 250 100" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4" opacity="0.3"/>
+  <path d="M180 350 C180 300 230 250 280 250 C330 250 380 300 380 350" stroke="#818CF8" stroke-width="2" stroke-dasharray="4 4" opacity="0.3"/>
+  
+  <!-- Clock Face -->
+  <circle cx="215" cy="180" r="120" stroke="#6366F1" stroke-width="2" stroke-opacity="0.4" />
+  <circle cx="215" cy="180" r="100" stroke="#818CF8" stroke-width="2" stroke-opacity="0.5" />
+  <circle cx="215" cy="180" r="80" stroke="#A5B4FC" stroke-width="2" stroke-opacity="0.6" />
+  
+  <!-- Clock Numbers -->
+  <text x="215" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" fill="#A5B4FC" font-weight="bold">12</text>
+  <text x="300" y="180" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" fill="#A5B4FC" font-weight="bold">3</text>
+  <text x="215" y="260" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" fill="#A5B4FC" font-weight="bold">6</text>
+  <text x="130" y="180" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" fill="#A5B4FC" font-weight="bold">9</text>
+  
+  <!-- Clock Hands -->
+  <line x1="215" y1="180" x2="215" y2="120" stroke="#818CF8" stroke-width="4" stroke-linecap="round" />
+  <line x1="215" y1="180" x2="255" y2="180" stroke="#818CF8" stroke-width="4" stroke-linecap="round" />
+  <circle cx="215" cy="180" r="8" fill="#6366F1" />
+  
+  <!-- Calendar -->
+  <rect x="140" y="250" width="150" height="120" rx="8" fill="none" stroke="#6366F1" stroke-width="1" stroke-opacity="0.6" />
+  <rect x="140" y="250" width="150" height="30" rx="8 8 0 0" fill="#4F46E5" fill-opacity="0.7" />
+  <text x="215" y="270" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#E0E7FF" font-weight="bold">Calendar</text>
+  
+  <!-- Calendar Lines -->
+  <rect x="155" y="290" width="120" height="10" rx="2" fill="#818CF8" fill-opacity="0.3" />
+  <rect x="155" y="310" width="80" height="10" rx="2" fill="#818CF8" fill-opacity="0.3" />
+  <rect x="155" y="330" width="100" height="10" rx="2" fill="#818CF8" fill-opacity="0.3" />
+  
+  <!-- Decorative Elements -->
+  <circle cx="80" cy="80" r="15" fill="#A5B4FC" opacity="0.6" />
+  <circle cx="350" cy="380" r="20" fill="#818CF8" opacity="0.6" />
+  <circle cx="100" cy="400" r="10" fill="#6366F1" opacity="0.6" />
+  
+  <!-- Abstract Lines -->
+  <path d="M50 400 Q215 380 380 400" stroke="#4F46E5" stroke-width="2" stroke-dasharray="4 4" opacity="0.4"/>
+  
+  <!-- Text -->
+  <text x="215" y="420" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" fill="#A5B4FC" font-weight="bold">
+    No time entries yet
+  </text>
+</svg> 

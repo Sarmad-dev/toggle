@@ -113,6 +113,12 @@ export async function createTeamWithInvitations(data: {
         name: data.name,
         description: data.description,
         managerId: manager.id,
+        members: {
+          create: data.memberIds.map((userId) => ({
+            userId,
+            role: "MEMBER",
+          })),
+        },
       },
     });
 
@@ -121,21 +127,33 @@ export async function createTeamWithInvitations(data: {
       // Create invitations
       await Promise.all(
         data.memberIds.map(async (userId) => {
-          const invitation = await prisma.teamInvitation.create({
-            data: {
-              teamId: team.id,
-              userId,
-              invitedById: manager.id,
-            },
-          });
-
           await prisma.notification.create({
             data: {
               userId,
-              type: "TEAM_INVITATION",
-              title: "Team Invitation",
-              message: `You have been invited to join team: ${team.name}`,
-              data: invitation.id,
+              type: "TEAM_MEMBER_ADDED",
+              title: "Team Member added",
+              message: `You have been added to : ${team.name}`,
+              data: team.id,
+            },
+          });
+        })
+      );
+    }
+
+    if ((data.projectIds?.length ?? 0) > 0) {
+      // Add projects to team
+      await Promise.all(
+        data.projectIds!.map(async (projectId) => {
+          await prisma.team.update({
+            where: {
+              id: team.id,
+            },
+            data: {
+              projects: {
+                connect: {
+                  id: projectId,
+                },
+              },
             },
           });
         })

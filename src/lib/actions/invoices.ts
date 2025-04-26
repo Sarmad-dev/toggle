@@ -5,6 +5,7 @@ import { InvoiceStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { getUser } from "./user";
 import { Prisma } from "@prisma/client";
+import { getOrganizationByUserId } from "./organization";
 
 export async function createInvoice(invoiceData: {
   template: string;
@@ -32,6 +33,9 @@ export async function createInvoice(invoiceData: {
     const user = await getUser();
     if (!user) throw new Error("User not authenticated");
 
+    const org = await getOrganizationByUserId(user.id);
+    if (!org?.data) throw new Error("Organization not found");
+
     await prisma.invoice.create({
       data: {
         ...invoiceData,
@@ -41,6 +45,7 @@ export async function createInvoice(invoiceData: {
           ? new Prisma.Decimal(invoiceData.discount)
           : null,
         userId: user.id,
+        orgId: org.data?.id,
         services: {
           create: invoiceData.services.map((service) => ({
             title: service.title,
@@ -68,8 +73,13 @@ export async function createInvoice(invoiceData: {
 export async function getInvoices() {
   try {
     const user = await getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const org = await getOrganizationByUserId(user.id);
+    if (!org?.data) throw new Error("Organization not found");
+
     const invoices = await prisma.invoice.findMany({
-      where: { userId: user?.id },
+      where: { userId: user?.id, orgId: org.data?.id },
       include: { services: true },
       orderBy: {
         createdAt: "desc",

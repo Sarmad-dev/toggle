@@ -21,12 +21,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { updateUser } from "@/lib/actions/user";
-import { Spinner } from "@/components/ui";
 import {
   getManagerProjects,
   getProjectMemberships,
 } from "@/lib/actions/projects";
 import { getTeamMemberships } from "@/lib/actions/teams";
+import SettingsLoader from "@/components/loaders/settings-loader";
 
 const formSchema = z.object({
   username: z.string().min(2, "Username must be at least 2 characters"),
@@ -105,7 +105,11 @@ export function ProfileSettings() {
   };
 
   if (isUserLoading) {
-    return <Spinner />;
+    return (
+      <div className="min-h-[calc(100vh-10rem)] flex items-center justify-center">
+        <SettingsLoader />
+      </div>
+    );
   }
 
   return (

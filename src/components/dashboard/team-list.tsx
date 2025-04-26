@@ -5,7 +5,8 @@ import { useUser } from "@/hooks/use-user";
 import { useQuery } from "@tanstack/react-query";
 import TeamListTable from "./team-list-table";
 import { TeamList as TeamListType } from "@/types/global";
-import { Loader2 } from "lucide-react";
+import Image from "next/image";
+import TeamLoader from "../loaders/team-loader";
 
 export function TeamList() {
   const { user } = useUser();
@@ -23,7 +24,32 @@ export function TeamList() {
   });
 
   if (managerTeamsLoading || teamsLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>
+    return (
+      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center">
+        <TeamLoader />
+      </div>
+    );
+  }
+
+  // Check if there are no teams
+  const hasManagerTeams = managerTeams?.data && managerTeams.data.length > 0;
+  const hasTeams = teams?.data && teams.data.length > 0;
+
+  if (!hasManagerTeams && !hasTeams) {
+    return (
+      <div className="flex flex-col justify-center items-center h-[450px] w-full">
+        <div className="relative w-[430px] h-[450px]">
+          <Image
+            src="/assets/no-teams.svg"
+            alt="No teams"
+            fill
+            priority
+            className="object-contain"
+          />
+        </div>
+        <p className="text-muted-foreground mt-4">Create your first team to get started</p>
+      </div>
+    );
   }
 
   return (

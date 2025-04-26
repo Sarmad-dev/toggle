@@ -35,7 +35,7 @@ export function BillingSettings() {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
-  console.log("USER: ", user)
+  console.log("USER: ", user);
 
   const handleUpgrade = async () => {
     setIsLoading(true);
@@ -184,7 +184,7 @@ export function BillingSettings() {
         </Button>
       </div>
 
-      {user?.lemonSqueezySubscriptionId && (
+      {user?.subscription?.lemonSqueezySubscriptionId && (
         <div className="mt-6 space-y-4">
           <h4 className="text-lg font-medium">Subscription Details</h4>
           <div className="rounded-lg border p-4 space-y-2">
@@ -217,10 +217,11 @@ export function BillingSettings() {
                     : "Next Payment"}
                   :
                 </span>{" "}
-                {user?.subscription?.createdAt && format(
-                  addOneMonthClamped(user.subscription.createdAt),
-                  "PPP"
-                )}
+                {user?.subscription?.createdAt &&
+                  format(
+                    addOneMonthClamped(user.subscription.createdAt),
+                    "PPP"
+                  )}
               </p>
             )}
           </div>
@@ -233,8 +234,8 @@ export function BillingSettings() {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This will cancel your subscription at the end of your current
-              billing period. You&apos;ll still have access to Pro features until
-              then.
+              billing period. You&apos;ll still have access to Pro features
+              until then.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

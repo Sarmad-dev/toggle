@@ -9,92 +9,103 @@ datasource db {
 }
 
 model User {
-  id                         String              @id @default(cuid())
-  email                      String              @unique
-  username                   String              @unique
-  password                   String?
-  createdAt                  DateTime            @default(now())
-  updatedAt                  DateTime            @updatedAt
-  image                      String?
-  subscription               Subscription?
-  organization               Organization?       @relation(fields: [orgId], references: [id])
-  orgId                      String?
-  projects                   Project[]
-  timeEntries                TimeEntry[]
-  tasks                      Task[]
-  clients                    Client[]
-  teams                      TeamMember[]
-  role                       UserRole            @default(USER)
-  preferences                Json? // For storing user preferences like theme, notifications, etc.
-  lastActive                 DateTime?
-  stripeId                   String?             @unique // For payment processing
-  managedProjects            Project[]           @relation("ManagedProjects")
-  projectMemberships         ProjectMember[]
-  notifications              Notification[]
-  sentInvitations            ProjectInvitation[] @relation("invitedByUser")
-  receivedInvitations        ProjectInvitation[] @relation("invitedUser")
-  chatMessages               ChatMessage[]
-  leadingTeams               Team[]              @relation("TeamLeader")
-  managerTeams               Team[]              @relation("TeamManager")
-  teamInvitations            TeamInvitation[]    @relation("TeamInvitedUser")
-  sentTeamInvites            TeamInvitation[]    @relation("TeamInvitedByUser")
-  invoices                   Invoice[]
-  plan                       String              @default("FREE") // FREE or PRO
-  lemonSqueezyCustomerId     String?
-  lemonSqueezySubscriptionId String?             @unique
-  name                       String?
-  emailVerified              DateTime?
-  accounts                   Account[]
+  id                  String                @id @default(cuid())
+  authId              String                @unique
+  email               String                @unique
+  username            String                @unique
+  name                String?
+  emailVerified       DateTime?
+  accounts            Account[]
+  password            String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  image               String?
+  subscription        Subscription?
+  organizationMembers OrganizationMembers[]
+  organizationOwner   Organization?
+  projects            Project[]
+  timeEntries         TimeEntry[]
+  tasks               Task[]
+  teams               TeamMember[]
+  role                UserRole              @default(MEMBER)
+  lastActive          DateTime?
+  notifications       Notification[]
+  sentInvitations     ProjectInvitation[]   @relation("invitedByUser")
+  receivedInvitations ProjectInvitation[]   @relation("invitedUser")
+
+  organizationSentInvitation     OrganizationInvitation[] @relation("invitedByUserToOrganization")
+  organizationReceivedInvitation OrganizationInvitation[] @relation("invitedUserToOrganization")
+  chatMessages                   ChatMessage[]
+  teamInvitations                TeamInvitation[]         @relation("TeamInvitedUser")
+  sentTeamInvites                TeamInvitation[]         @relation("TeamInvitedByUser")
+  plan                           String                   @default("FREE") // FREE or PRO
+  ProjectMember                  ProjectMember[]
+  temaMember                     Team[]
+  teamManager                    Team[]                   @relation("TeamManager")
+  teamLeader                     Team[]                   @relation("TeamLeader")
+  TaskMembers                    TaskMembers[]
+  TaskActivity                   TaskActivity[]
+  Invoice                        Invoice[]
 }
 
 enum UserRole {
   ADMIN
-  USER
-  MANAGER
+  MEMBER
+  OWNER
 }
 
 model Account {
-  id                 String  @id @default(uuid())
-  userId             String
-  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type               String
-  provider           String
-  providerAccountId  String
-  access_token       String?
-  refresh_token      String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String
+  provider          String
+  providerAccountId String
+  access_token      String?
+  refresh_token     String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@unique([provider, providerAccountId])
 }
 
 model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  users     User[]
-  clients   Client[]
-  teams     Team[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  settings  Json? // Organization-wide settings
+  id                      String                   @id @default(cuid())
+  name                    String
+  description             String
+  members                 OrganizationMembers[]
+  logo                    String?
+  clients                 Client[]
+  teams                   Team[]
+  projects                Project[]
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  settings                Json? // Organization-wide settings
+  organizationInvitations OrganizationInvitation[]
+
+  ownerId String    @unique
+  owner   User      @relation(fields: [ownerId], references: [id])
+  Invoice Invoice[]
 }
 
 model Subscription {
-  id                String             @id @default(cuid())
-  userId            String             @unique
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan              SubscriptionPlan
-  status            SubscriptionStatus
-  currentPeriodEnd  DateTime?
-  cancelAtPeriodEnd Boolean            @default(false)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  lemonSqueezyId    String?            @unique
+  id                         String             @id @default(cuid())
+  userId                     String             @unique
+  user                       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                       SubscriptionPlan
+  status                     SubscriptionStatus
+  currentPeriodEnd           DateTime?
+  cancelAtPeriodEnd          Boolean            @default(false)
+  createdAt                  DateTime           @default(now())
+  updatedAt                  DateTime           @updatedAt
+  lemonSqueezyId             String?            @unique
+  lemonSqueezyCustomerId     String?
+  lemonSqueezySubscriptionId String?            @unique
 }
 
 enum SubscriptionPlan {
@@ -118,6 +129,7 @@ model Project {
   color          String?
   billable       Boolean             @default(false)
   billableAmount Float? // Add billableAmount field
+  dueDate        DateTime?
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   client         Client?             @relation(fields: [clientId], references: [id])
@@ -126,14 +138,26 @@ model Project {
   timeEntries    TimeEntry[]
   members        ProjectMember[]
   invitations    ProjectInvitation[]
-  managerId      String // The user who manages this project
-  manager        User                @relation("ManagedProjects", fields: [managerId], references: [id])
   team           Team?               @relation(fields: [teamId], references: [id])
   teamId         String?
   tags           Tag[]
   chatMessages   ChatMessage[]
   user           User?               @relation(fields: [userId], references: [id])
   userId         String?
+  organization   Organization        @relation(fields: [orgId], references: [id])
+  orgId          String
+}
+
+model OrganizationMembers {
+  id             String       @id @default(cuid())
+  role           Role         @default(MEMBER)
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  joinedAt       DateTime     @default(now())
+
+  @@unique([organizationId, userId])
 }
 
 model ProjectMember {
@@ -149,16 +173,29 @@ model ProjectMember {
 }
 
 model ProjectInvitation {
-  id          String   @id @default(cuid())
-  projectId   String
-  userId      String
-  invitedById String
-  status      String   @default("PENDING")
-  project     Project  @relation(fields: [projectId], references: [id])
-  user        User     @relation("invitedUser", fields: [userId], references: [id])
-  invitedBy   User     @relation("invitedByUser", fields: [invitedById], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  projectId       String
+  invitedUserId   String
+  invitedByUserId String
+  status          String   @default("PENDING")
+  project         Project  @relation(fields: [projectId], references: [id])
+  user            User     @relation("invitedUser", fields: [invitedUserId], references: [id])
+  invitedBy       User     @relation("invitedByUser", fields: [invitedByUserId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model OrganizationInvitation {
+  id             String       @id @default(cuid())
+  organizationId String
+  invitedUserId  String
+  invitedById    String
+  status         String       @default("PENDING")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  user           User         @relation("invitedUserToOrganization", fields: [invitedUserId], references: [id])
+  invitedBy      User         @relation("invitedByUserToOrganization", fields: [invitedById], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model Notification {
@@ -179,7 +216,6 @@ model Client {
   email        String?
   address      String?
   userId       String
-  user         User         @relation(fields: [userId], references: [id])
   orgId        String
   organization Organization @relation(fields: [orgId], references: [id])
   projects     Project[]
@@ -194,24 +230,27 @@ enum TaskPriority {
 }
 
 model Task {
-  id            String       @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String
   description   String?
-  priority      TaskPriority @default(MEDIUM)
-  status        String       @default("TODO")
+  priority      TaskPriority   @default(MEDIUM)
+  status        TaskStatus     @default(DRAFT)
   dueDate       DateTime?
   projectId     String
-  assignedTo    String?
-  assignedToAll Boolean      @default(false)
-  project       Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user          User?        @relation(fields: [assignedTo], references: [id])
+  assignedTo    User[]
+  assignedToAll Boolean        @default(false)
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   timeEntries   TimeEntry[]
   tags          Tag[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  TaskMembers   TaskMembers[]
+  TaskMessages  ChatMessage[]
+  TaskActivity  TaskActivity[]
 }
 
 enum TaskStatus {
+  DRAFT
   TODO
   IN_PROGRESS
   COMPLETED
@@ -221,6 +260,15 @@ enum Priority {
   LOW
   MEDIUM
   HIGH
+}
+
+model TaskMembers {
+  id     String @id @default(cuid())
+  userId String
+  taskId String
+
+  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id])
 }
 
 model TimeEntry {
@@ -257,6 +305,8 @@ model Team {
   invitations  TeamInvitation[]
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+  User         User?            @relation(fields: [userId], references: [id])
+  userId       String?
 }
 
 model TeamMember {
@@ -290,27 +340,27 @@ model Tag {
 }
 
 model Invoice {
-  id             String    @id @default(cuid())
-  template       String
-  invoiceNumber  String    @unique
-  logo           String?
-  signature      String?
-  clientName     String
-  clientEmail    String?
-  clientAddress  String
-  dueDate        DateTime
-  paymentTerms   String
-  notes          String?
-  taxRate        Decimal?
-  discount       Decimal?
-  status         String    @default("PENDING")
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  userId         String
-  user           User      @relation(fields: [userId], references: [id])
-  services       InvoiceService[]
-
-  @@index([userId])
+  id            String           @id @default(cuid())
+  template      String
+  invoiceNumber String           @unique
+  logo          String?
+  signature     String?
+  clientName    String
+  clientEmail   String?
+  clientAddress String
+  dueDate       DateTime
+  paymentTerms  String
+  notes         String?
+  taxRate       Decimal?
+  discount      Decimal?
+  userId        String
+  user          User             @relation(fields: [userId], references: [id])
+  orgId         String
+  organization  Organization     @relation(fields: [orgId], references: [id])
+  status        String           @default("PENDING")
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  services      InvoiceService[]
 }
 
 enum InvoiceStatus {
@@ -324,6 +374,7 @@ enum InvoiceStatus {
 
 enum Role {
   MANAGER
+  LEADER
   MEMBER
 }
 
@@ -335,29 +386,46 @@ enum InvitationStatus {
 
 enum NotificationType {
   PROJECT_INVITATION
+  ORGANIZATION_INVITATION
   PROJECT_MEMBER_ADDED
   TEAM_INVITATION
   TEAM_MEMBER_ADDED
+  TASK_MEMBER_ADDED
   INVITATION_ACCEPTED
   INVITATION_DECLINED
   TASK_ASSIGNED
   TASK_STATUS_CHANGED
 }
 
+model TaskActivity {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([taskId])
+}
+
 model ChatMessage {
   id        String        @id @default(cuid())
   content   String
   userId    String
-  projectId String
+  projectId String?
   fileUrl   String?
   fileName  String?
   fileType  String?
   createdAt DateTime      @default(now())
   user      User          @relation(fields: [userId], references: [id])
-  project   Project       @relation(fields: [projectId], references: [id])
+  project   Project?      @relation(fields: [projectId], references: [id])
   replyTo   ChatMessage?  @relation("Replies", fields: [replyToId], references: [id])
   replyToId String?
   replies   ChatMessage[] @relation("Replies")
+  Task      Task?         @relation(fields: [taskId], references: [id])
+  taskId    String?
 
   @@index([userId])
   @@index([projectId])
@@ -385,7 +453,7 @@ model InvoiceService {
   description String?
   hours       Decimal
   rate        Decimal
-  total       Decimal  // Calculated field (hours * rate)
+  total       Decimal // Calculated field (hours * rate)
   invoice     Invoice  @relation(fields: [invoiceId], references: [id])
   invoiceId   String
   createdAt   DateTime @default(now())

@@ -1,0 +1,33 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g clip-path="url(#clip0_1_2)">
+    <!-- Background Elements -->
+    <path d="M50 150 C50 67.157 117.157 0 200 0 C282.843 0 350 67.157 350 150" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 4"/>
+    
+    <!-- Clock Face -->
+    <circle cx="200" cy="150" r="80" fill="#EEF2FF" stroke="#6366F1" stroke-width="3"/>
+    <circle cx="200" cy="150" r="5" fill="#4F46E5"/>
+    
+    <!-- Clock Hands -->
+    <line x1="200" y1="150" x2="200" y2="90" stroke="#4F46E5" stroke-width="3" stroke-linecap="round"/>
+    <line x1="200" y1="150" x2="250" y2="150" stroke="#4F46E5" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Decorative Elements -->
+    <circle cx="80" cy="80" r="20" fill="#A5B4FC" opacity="0.5"/>
+    <circle cx="320" cy="220" r="25" fill="#818CF8" opacity="0.5"/>
+    <circle cx="150" cy="250" r="15" fill="#6366F1" opacity="0.5"/>
+    
+    <!-- Team Members -->
+    <circle cx="120" cy="150" r="30" fill="#C7D2FE"/>
+    <circle cx="280" cy="150" r="30" fill="#C7D2FE"/>
+    <circle cx="200" cy="220" r="30" fill="#C7D2FE"/>
+    
+    <!-- Abstract Lines -->
+    <path d="M120 150 Q200 100 280 150" stroke="#4F46E5" stroke-width="2" stroke-dasharray="4 4"/>
+    <path d="M120 150 Q200 200 280 150" stroke="#4F46E5" stroke-width="2" stroke-dasharray="4 4"/>
+  </g>
+  <defs>
+    <clipPath id="clip0_1_2">
+      <rect width="400" height="300" fill="white"/>
+    </clipPath>
+  </defs>
+</svg>

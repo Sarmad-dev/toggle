@@ -25,10 +25,9 @@ export function ReportsList({ data }: ReportsListProps) {
   const [selectedMonth, setSelectedMonth] = useState(() => {
     return format(new Date(), "yyyy-MM");
   });
-  const [chartType, setChartType] = useState<"line" | "bar" | "bubble">("line");
+  const [chartType, setChartType] = useState<"line" | "bar">("line");
 
-  const ChartComponent =
-    chartType === "line" ? Line : Bar;
+  const ChartComponent = chartType === "line" ? Line : Bar;
 
   const reports = assembleReports(data);
 

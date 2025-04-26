@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { handleTeamInvitation } from "@/lib/actions/teams";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { handleProjectInvitation } from "@/lib/actions/project-invitations";
+import { handleOrganizationInvitation } from "@/lib/actions/organization-invitation";
 
 interface NotificationItemProps {
   id?: string;
@@ -45,6 +46,12 @@ export function NotificationItem({
       } else if (type === "TEAM_INVITATION") {
         // Handle team invitation
         await handleTeamInvitation(data, status, id);
+      } else if (type === "ORGANIZATION_INVITATION") {
+        await handleOrganizationInvitation({
+          invitationId: data,
+          status,
+          notificationId: id as string
+        })
       }
     },
     onSuccess: () => {
@@ -78,7 +85,9 @@ export function NotificationItem({
         </div>
       </div>
       <p className="text-sm text-muted-foreground mb-2">{message}</p>
-      {(type === "PROJECT_INVITATION" || type === "TEAM_INVITATION") &&
+      {(type === "PROJECT_INVITATION" ||
+        type === "TEAM_INVITATION" ||
+        type === "ORGANIZATION_INVITATION") &&
         !read && (
           <div className="flex gap-2">
             <Button

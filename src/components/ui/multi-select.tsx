@@ -16,21 +16,20 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, X } from "lucide-react";
 import { Button } from "./button";
-
-export interface Option {
-  label: string; // username
-  value: string; // id
-  email?: string; // optional email for searching
-}
+import { MultiSelectOption } from "@/types/global";
+import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
+import { useUser } from "@/hooks/use-user";
 
 interface MultiSelectProps {
   placeholder?: string;
-  options: Option[];
+  options: MultiSelectOption[];
   selected: string[];
   onChange: (value: string[]) => void;
   className?: string;
+  width?: string;
+  isLoading?: boolean;
 }
 
 export function MultiSelect({
@@ -39,50 +38,44 @@ export function MultiSelect({
   selected = [],
   onChange = () => {},
   className = "",
+  width,
+  isLoading,
   ...props
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [debouncedSearch, setDebouncedSearch] = React.useState(searchQuery);
+  const [selectedMembers, setSelectedMembers] = React.useState<
+    MultiSelectOption[] | null
+  >(null);
 
-  // Debounce search input to improve performance
-  React.useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 300); // 300ms delay
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchQuery]);
-
-  const safeOptions = React.useMemo(() => {
-    return Array.isArray(options) ? options : [];
-  }, [options]);
-
-  const safeSelected = React.useMemo(() => {
-    return Array.isArray(selected) ? selected : [];
-  }, [selected]);
-
-  const filteredOptions = React.useMemo(() => {
-    if (!Array.isArray(safeOptions)) return [];
-    const search = debouncedSearch.toLowerCase();
-    return safeOptions.filter(
-      (option) =>
-        option.label.toLowerCase().includes(search) ||
-        option.email?.toLowerCase().includes(search)
-    );
-  }, [safeOptions, debouncedSearch]);
+  const { user } = useUser();
 
   const handleUnselect = (value: string) => {
-    onChange(safeSelected.filter((v) => v !== value));
+    onChange(selected?.filter((v) => v !== value));
+    setSelectedMembers(
+      (prevMembers) =>
+        prevMembers?.filter(
+          (member) => member.value !== value
+        ) as MultiSelectOption[]
+    );
   };
 
-  const handleSelect = (value: string) => {
-    if (safeSelected.includes(value)) {
-      onChange(safeSelected.filter((v) => v !== value));
+  const handleSelect = (data: MultiSelectOption) => {
+    const { value, label, email, imageUrl } = data;
+    if (selected?.includes(value)) {
+      onChange(selected.filter((v) => v !== value));
+      setSelectedMembers(
+        (prevMembers) =>
+          prevMembers?.filter(
+            (member) => member.value !== value
+          ) as MultiSelectOption[]
+      );
     } else {
-      onChange([...safeSelected, value]);
+      onChange([...(selected ?? []), value]);
+      setSelectedMembers((prevMembers) => [
+        ...(prevMembers ?? []),
+        { value: value, label, email, imageUrl },
+      ]);
     }
   };
 
@@ -94,25 +87,23 @@ export function MultiSelect({
           role="combobox"
           aria-expanded={open}
           aria-label="Toggle member selection"
-          className={cn("w-full justify-between", className)}
+          className={cn("w-full justify-between h-[50px]", className)}
         >
           <div className="flex gap-1 flex-wrap">
-            {safeSelected.length === 0 && "Select members..."}
-            {safeSelected.map((value) => {
-              const selectedOption = safeOptions.find(
-                (opt) => opt.value === value
-              );
+            {(selectedMembers?.length === 0 || selectedMembers === null) &&
+              "Select members..."}
+            {selectedMembers?.map((member) => {
               return (
                 <Badge
                   variant="secondary"
-                  key={value}
+                  key={member.value}
                   className="mr-1"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleUnselect(value);
+                    handleUnselect(member.value);
                   }}
                 >
-                  {selectedOption ? selectedOption.label : "Unknown"}
+                  {member.label}
                   <X className="ml-1 h-3 w-3" />
                 </Badge>
               );
@@ -122,7 +113,7 @@ export function MultiSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-full p-0"
+        className={`${width} p-0`}
         align="start"
         side="bottom"
         aria-label="Member selection options"
@@ -135,31 +126,54 @@ export function MultiSelect({
             aria-label="Search users"
           />
           <CommandList>
-            <CommandEmpty>No options found</CommandEmpty>
+            <CommandEmpty>
+              {isLoading ? (
+                <div className="w-full flex items-center justify-center">
+                  <Loader2 className="animate-spin" />
+                </div>
+              ) : (
+                "No options found"
+              )}
+            </CommandEmpty>
             <CommandGroup className="max-h-[200px] overflow-auto">
-              {filteredOptions.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  onSelect={() => handleSelect(option.value)}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      safeSelected.includes(option.value)
-                        ? "opacity-100"
-                        : "opacity-0"
-                    )}
-                  />
-                  <div className="flex flex-col">
-                    <span>{option.label}</span>
-                    {option.email && (
-                      <span className="text-xs text-muted-foreground">
-                        {option.email}
-                      </span>
-                    )}
-                  </div>
-                </CommandItem>
-              ))}
+              {options
+                .filter((u) => u.value !== user?.id)
+                .map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    onSelect={() => handleSelect(option)}
+                  >
+                    <div className="w-full px-2 flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage src={option.imageUrl} />
+                          <AvatarFallback className="text-lg">
+                            {option.label.charAt(0).toUpperCase()}
+                            {option.label.charAt(1).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span>{option.label}</span>
+                          {option.email && (
+                            <span className="text-xs text-muted-foreground">
+                              {option.email}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Check
+                        className={cn(
+                          "h-4 w-4",
+                          selectedMembers?.find(
+                            (member) => member.value === option.value
+                          )
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                    </div>
+                  </CommandItem>
+                ))}
             </CommandGroup>
           </CommandList>
         </Command>

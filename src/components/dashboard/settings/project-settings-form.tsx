@@ -10,8 +10,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -30,6 +28,8 @@ import { getManagerTeams } from "@/lib/actions/teams";
 import { useUser } from "@/hooks/use-user";
 import { Loader2 } from "lucide-react";
 import { ProjectWithDetails } from "@/types/global";
+import CustomInput from "@/components/custom/custom-input";
+import CustomTextarea from "@/components/custom/custom-textarea";
 
 const formSchema = z.object({
   name: z.string().min(1, "Project name is required"),
@@ -50,7 +50,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
 
   const { data: teamsData } = useQuery({
     queryKey: ["teams"],
-    queryFn: () => getManagerTeams(user?.id),
+    queryFn: () => getManagerTeams(user?.id as string),
     enabled: !!user,
   });
 
@@ -78,7 +78,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
       });
       toast.success("Project settings updated");
     } catch (error) {
-      console.error("Failed to update project settings: ", error)
+      console.error("Failed to update project settings: ", error);
       toast.error("Failed to update project settings");
     } finally {
       setIsSubmitting(false);
@@ -96,7 +96,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
               <FormItem>
                 <FormLabel>Project Name</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <CustomInput {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -110,7 +110,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea {...field} />
+                  <CustomTextarea {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -125,17 +125,19 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
                 <FormLabel>Assign to Team</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                  defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-[50px]">
                       <SelectValue placeholder="Select a team" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="none">No Team</SelectItem>
                     {teamsData?.data?.map((team) => (
-                      <SelectItem key={team.id} value={team.id}>
+                      <SelectItem
+                        key={team.id}
+                        value={team.id}
+                        className="h-[50px]">
                         {team.name}
                       </SelectItem>
                     ))}
@@ -175,7 +177,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
                 <FormItem>
                   <FormLabel>Hourly Rate ($)</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" {...field} />
+                    <CustomInput type="number" step="0.01" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -190,7 +192,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
               <FormItem>
                 <FormLabel>Project Color</FormLabel>
                 <FormControl>
-                  <Input type="color" {...field} />
+                  <CustomInput type="color" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

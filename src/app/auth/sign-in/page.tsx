@@ -5,6 +5,13 @@ import { signInSchema, type SignInFormData } from "@/lib/validations/auth";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const defaultValues: SignInFormData = {
   email: "",
@@ -33,7 +40,7 @@ export default function SignInPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-      const data = await response.json()
+      const data = await response.json();
 
       return data;
     },
@@ -41,8 +48,8 @@ export default function SignInPage() {
       if (data.success === false) {
         toast.error(data.message);
       } else {
-      toast.success(data.message);
-      router.push("/dashboard");
+        toast.success(data.message);
+        router.push("/dashboard");
       }
     },
     onError: (error: Error) => {
@@ -55,17 +62,24 @@ export default function SignInPage() {
   };
 
   return (
-    <>
-      <h1 className="text-2xl font-bold mb-2 text-center">Sign In</h1>
-      <AuthForm
-        schema={signInSchema}
-        defaultValues={defaultValues}
-        onSubmit={onSubmit}
-        formFields={formFields}
-        submitButtonText="Sign In"
-        showForgotPassword={true}
-        type="SignIn"
-      />
-    </>
+    <div className="max-sm:w-screen px-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Welcome Back</CardTitle>
+          <CardDescription>Sign in to your account to continue</CardDescription>
+        </CardHeader>
+        <CardContent className="sm:w-[450px] w-full">
+          <AuthForm
+            schema={signInSchema}
+            defaultValues={defaultValues}
+            onSubmit={onSubmit}
+            formFields={formFields}
+            submitButtonText="Sign In"
+            showForgotPassword={true}
+            type="SignIn"
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

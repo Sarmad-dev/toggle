@@ -216,7 +216,8 @@ export function ProjectChat({ projectId, members }: ProjectChatProps) {
         const { file } = selectedFiles[0];
         fileData = await uploadFile(
           file,
-          file.type.startsWith("image/") ? "images" : "documents"
+          file.type.startsWith("image/") ? "images" : "documents",
+          "chat-files"
         );
       }
 

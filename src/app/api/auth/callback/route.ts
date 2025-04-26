@@ -2,17 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
-// export const dynamic = 'force-dynamic';
-
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-
-  console.log("API CALLBACK ROUTE CALLED")
-
-  console.log("URL: ", request.url)
-
-  console.log("CODE: ", code)
 
   if (code) {
     const supabase = await createClient();
@@ -23,41 +15,53 @@ export async function GET(request: Request) {
         error,
       } = await supabase.auth.exchangeCodeForSession(code);
 
-      console.log("SESSION: ", session)
-
       if (error || !session?.user) throw error || new Error("No session found");
 
       // Get user details from OAuth response
-      const { id, email, user_metadata } = session.user;
+      const { id, email, user_metadata, email_confirmed_at } = session.user;
       const avatar_url = user_metadata?.avatar_url;
-      const full_name = user_metadata?.full_name;
+      const full_name = user_metadata?.full_name as string;
 
-      // Upsert user using Prisma
-      await prisma.user.upsert({
-        where: { email: email! },
-        update: {
-          image: avatar_url,
-          name: full_name,
-          accounts: {
-            update: {
-              where: {
-                provider_providerAccountId: {
-                  provider: "google",
-                  providerAccountId: id,
-                },
-              },
-              data: {
-                type: "oauth",
-                provider: "google",
-                providerAccountId: id,
-              },
-            },
-          },
+      const existingUser = await prisma.user.findUnique({
+        where: {
+          email,
         },
-        create: {
-          email: email!,
-          username: email?.split("@")[0] as string,
-          name: full_name || email?.split("@")[0],
+        include: {
+          accounts: true,
+        },
+      });
+
+      if (
+        existingUser &&
+        existingUser.accounts.find((account) => account.type === "oauth")
+      ) {
+        return NextResponse.redirect(origin);
+      } else if (
+        existingUser &&
+        existingUser.accounts.find((account) => account.type !== "oauth")
+      ) {
+        await prisma.account.create({
+          data: {
+            userId: existingUser.id,
+            provider: "google",
+            providerAccountId: id,
+            type: "oauth",
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            expires_at: session.expires_at,
+          },
+        });
+
+        return NextResponse.redirect(origin);
+      }
+      // Upsert user using Prisma
+      await prisma.user.create({
+        data: {
+          email: email as string,
+          authId: id,
+          emailVerified: email_confirmed_at,
+          name: full_name,
+          username: full_name.replace(" ", "_") + "_" + Math.round(Math.random() * 10000),
           image: avatar_url,
           accounts: {
             create: {
@@ -70,7 +74,6 @@ export async function GET(request: Request) {
             },
           },
         },
-        include: { accounts: true },
       });
     } catch (error) {
       console.error("Auth callback error:", error);
@@ -78,5 +81,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(origin);
+  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/onboarding`);
 }

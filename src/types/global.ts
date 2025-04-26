@@ -5,6 +5,8 @@ import {
   TaskPriority,
   Team,
   User as PrismaUser,
+  Tag,
+  TaskActivity,
 } from "@prisma/client";
 
 export type NotificationType = PrismaNotificationType;
@@ -14,9 +16,9 @@ declare global {
     createLemonSqueezy?: () => void;
     LemonSqueezy: {
       Url: {
-        Open: (url: string) => void
-      }
-    }
+        Open: (url: string) => void;
+      };
+    };
   }
 }
 
@@ -236,7 +238,7 @@ export interface Project {
   id: string;
   name: string;
   color: string | null;
-  client: { 
+  client: {
     id: string;
     name: string;
   } | null;
@@ -246,6 +248,7 @@ export interface Project {
     members: number;
   };
   userId: string;
+  dueDate: Date | null;
   billable: boolean;
   team: {
     id: string;
@@ -261,13 +264,9 @@ export interface Task {
   dueDate: Date | null;
   priority: TaskPriority;
   projectId: string;
-  assignedTo: string | null;
   assignedToAll: boolean;
   createdAt: Date;
   updatedAt: Date;
-  user: {
-    username: string;
-  } | null;
 }
 
 export interface User {
@@ -335,4 +334,39 @@ export interface InvoiceServiceProps {
   hours: number;
   rate: number;
   total: number;
+}
+
+export interface MultiSelectOption {
+  label: string; // username
+  value: string; // id
+  email?: string; // optional email for searching;
+  imageUrl?: string;
+}
+
+export interface ProjectTask {
+  id: string;
+  name: string;
+  description: string;
+  priority: TaskPriority;
+  tags: {
+    name: string;
+    color: string;
+  }[];
+}
+
+export interface TaskWithTags extends Task {
+  tags: Tag[];
+  taskMembers: {
+    id: string;
+    taskId: string;
+    userId: string;
+    user: PrismaUser;
+  }[];
+  assignedToAll: boolean;
+  taskActivity: (TaskActivity & { user: PrismaUser })[];
+  TaskMessages: (ChatMessage & { user: PrismaUser })[];
+}
+
+export interface TaskWithProject extends Task {
+  project: { name: string; user: PrismaUser | null };
 }

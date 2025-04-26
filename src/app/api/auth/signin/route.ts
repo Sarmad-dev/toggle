@@ -16,6 +16,8 @@ export async function POST(req: Request) {
       where: { email },
     });
 
+    console.log("USER: ", user)
+
     if (!user || !user.password) {
       return NextResponse.json(
         { success: false, message: "Invalid credentials" },

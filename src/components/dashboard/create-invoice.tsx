@@ -56,12 +56,16 @@ const formSchema = z.object({
   notes: z.string().optional(),
   taxRate: z.coerce.number().min(0).max(100),
   discount: z.coerce.number().min(0).optional().nullable(),
-  services: z.array(z.object({
-    title: z.string().min(1, "Title is required"),
-    description: z.string().optional(),
-    hours: z.string().regex(/^\d+\.?\d*$/, "Invalid hours"),
-    rate: z.string().regex(/^\d+\.?\d*$/, "Invalid rate"),
-  })).min(1, "At least one service is required"),
+  services: z
+    .array(
+      z.object({
+        title: z.string().min(1, "Title is required"),
+        description: z.string().optional(),
+        hours: z.string().regex(/^\d+\.?\d*$/, "Invalid hours"),
+        rate: z.string().regex(/^\d+\.?\d*$/, "Invalid rate"),
+      })
+    )
+    .min(1, "At least one service is required"),
 });
 
 interface CreateInvoiceProps {
@@ -94,12 +98,14 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
       discount: 0,
       notes: "",
       paymentTerms: "",
-      services: [{
-        title: "",
-        description: "",
-        hours: "",
-        rate: "",
-      }],
+      services: [
+        {
+          title: "",
+          description: "",
+          hours: "",
+          rate: "",
+        },
+      ],
     },
   });
 
@@ -153,8 +159,9 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
                           clientEmail: "john.doe@example.com",
                           clientAddress: "123 Main St, Anytown, USA",
                           logo: "https://png.pngtree.com/png-clipart/20190604/original/pngtree-creative-company-logo-png-image_1197025.jpg",
-                          signature: "https://signaturely.com/wp-content/uploads/2020/04/mark-cuban-signature-signaturely-image.png",
-                          services: invoiceServices
+                          signature:
+                            "https://signaturely.com/wp-content/uploads/2020/04/mark-cuban-signature-signaturely-image.png",
+                          services: invoiceServices,
                         })}
                       </div>
                     </div>
@@ -255,7 +262,7 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
         );
 
       case "details":
-  return (
+        return (
           <div className="space-y-6">
             <h3 className="text-xl font-semibold">Invoice Details</h3>
             <FormField
@@ -464,7 +471,10 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
                     variant="destructive"
                     onClick={() => {
                       const services = form.getValues("services");
-                      form.setValue("services", services.filter((_, i) => i !== index));
+                      form.setValue(
+                        "services",
+                        services.filter((_, i) => i !== index)
+                      );
                     }}
                   >
                     Remove Service
@@ -486,7 +496,10 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
               Add Service
             </Button>
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setCurrentStep("details")}>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep("details")}
+              >
                 Back
               </Button>
               <Button type="submit" disabled={isSubmitting}>
@@ -537,10 +550,15 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
     if (!user) return;
 
     try {
-      const uploadedLogo = await uploadFile(logo?.file as File, "images");
+      const uploadedLogo = await uploadFile(
+        logo?.file as File,
+        "logo",
+        "invoices-images"
+      );
       const uploadedSignature = await uploadFile(
         signature?.file as File,
-        "images"
+        "signatures",
+        "invoices-images"
       );
       const invoiceData = {
         ...values,
@@ -557,12 +575,14 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
         dueDate: new Date(values.dueDate),
         userId: user.id,
         status: "PENDING",
-        services: values.services.map(service => ({
+        services: values.services.map((service) => ({
           title: service.title,
           description: service.description || null,
           hours: service.hours,
           rate: service.rate,
-          total: (parseFloat(service.hours) * parseFloat(service.rate)).toString(),
+          total: (
+            parseFloat(service.hours) * parseFloat(service.rate)
+          ).toString(),
         })),
       };
 
@@ -608,4 +628,4 @@ export function CreateInvoice({ open, onOpenChange }: CreateInvoiceProps) {
       </DialogContent>
     </Dialog>
   );
-} 
+}

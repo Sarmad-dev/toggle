@@ -16,7 +16,7 @@ export async function createNotification(data: {
     const notification = await prisma.notification.create({
       data: {
         type: data.type,
-        title: data.message,
+        title: data.title,
         message: data.message,
         userId: data.userId,
         data: data.data,

@@ -19,6 +19,7 @@ import {
 import { useTimerStore } from "@/stores/use-timer-store";
 import { useUser } from "@/hooks/use-user";
 import { Project } from "@/types/global";
+import { format } from "date-fns";
 
 export const useProjectColumns = () => {
   const { isRunning, selectedProjectId, start, stop } = useTimerStore();
@@ -35,17 +36,18 @@ export const useProjectColumns = () => {
             size="icon"
             className={cn(
               "h-8 w-8",
-              isRunning && selectedProjectId === project.id && "text-destructive"
+              isRunning &&
+                selectedProjectId === project.id &&
+                "text-destructive"
             )}
             onClick={() => {
               if (isRunning && selectedProjectId === project.id) {
-                stop();
+                stop(user?.id as string);
               } else {
                 start(project.id);
               }
             }}
-            disabled={!user}
-          >
+            disabled={!user}>
             {isRunning && selectedProjectId === project.id ? (
               <StopCircle className="h-4 w-4" />
             ) : (
@@ -68,8 +70,7 @@ export const useProjectColumns = () => {
             />
             <Link
               href={`/dashboard/projects/${project.id}`}
-              className="font-medium hover:underline"
-            >
+              className="font-medium hover:underline">
               {project.name}
             </Link>
           </div>
@@ -109,6 +110,16 @@ export const useProjectColumns = () => {
       ),
     },
     {
+      accessorKey: "dueDate",
+      header: "Due Date",
+      cell: ({ row }) =>
+        row.original.dueDate ? (
+          <span>{format(row.original.dueDate, "PPP")}</span>
+        ) : (
+          <span className="text-muted-foreground">No due date</span>
+        ),
+    },
+    {
       accessorKey: "billable",
       header: "Status",
       cell: ({ row }) =>
@@ -143,5 +154,5 @@ export const useProjectColumns = () => {
     },
   ];
 
-  return {projectColumns}
+  return { projectColumns };
 };

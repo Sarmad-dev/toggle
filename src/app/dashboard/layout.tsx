@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { RealtimeManager } from "@/lib/realtime";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/use-user";
+import { useUserContext } from "@/context/UserContext";
 
 // export const dynamic = 'force-dynamic';
 
@@ -15,8 +16,9 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useUser()
-  const userId = user?.id
+  useUserContext();
+  const { user } = useUser();
+  const userId = user?.id;
 
   useEffect(() => {
     if (!userId) return;
@@ -46,22 +48,6 @@ export default function DashboardLayout({
   }, [userId]);
 
   try {
-    // await queryClient.prefetchQuery({ queryKey: ["all-projects"], queryFn: () => getProjects(user?.id as string) })
-    // await queryClient.prefetchQuery({ queryKey: ["all-teams"], queryFn: () => getAllTeams()})
-    // await queryClient.prefetchQuery({
-    //       queryKey: ["manager-teams"],
-    //       queryFn: async () => await getManagerTeams(user?.id as string),
-    //     }
-    // )
-    // await queryClient.prefetchQuery({
-    //   queryKey: ["teams"],
-    //       queryFn: async () => await getTeams(user?.id as string),
-    // })
-    // await queryClient.prefetchQuery({
-    //     queryKey: ["time-tracking-stats"],
-    //     queryFn: async () => await getTimeTrackingStats(user?.id as string),
-    //   })
-
     return (
       <div
         className="relative min-h-screen bg-gradient-light dark:bg-gradient-dark"
@@ -74,7 +60,7 @@ export default function DashboardLayout({
           </div>
 
           <main className="flex-1 overflow-y-auto hide-scrollbar">
-            <div className="container p-6 mt-10 mx-auto">{children}</div>
+            <div className="container p-6 mt-10 mx-auto h-auto">{children}</div>
           </main>
         </div>
       </div>

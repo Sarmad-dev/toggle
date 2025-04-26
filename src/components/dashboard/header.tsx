@@ -8,13 +8,11 @@ export function Header() {
       <div className="w-full flex h-14 items-center justify-between px-10">
         <Link href="/" className="flex items-center space-x-2">
           <Image
-            src="/assets/logo.svg"
+            src={"/assets/logo.svg"}
             alt="Logo"
-            className="h-8 w-8"
-            width={32}
-            height={32}
+            width={180}
+            height={180}
           />
-          <span className="font-semibold">TimeTrack</span>
         </Link>
 
         <div className="flex items-center gap-4">

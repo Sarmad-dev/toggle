@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import QueryProvider from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { UserProvider } from "@/context/UserContext";
 
 // export const dynamic = 'force-dynamic';
 
@@ -19,14 +20,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Time Track",
-  description: "All-in-One Team Productivity Platform | Time Tracking, Project Management & Real-Time Collaboration. Features task organization, team chat with file sharing, deadline tracking, and productivity analytics. Unified solution for remote teams with instant notifications and progress monitoring.",
+  title: "Orvio | Organize your universe.",
+  description:
+    "All-in-One Team Productivity Platform | Time Tracking, Project Management & Real-Time Collaboration. Features task organization, team chat with file sharing, deadline tracking, and productivity analytics. Unified solution for remote teams with instant notifications and progress monitoring.",
   icons: {
-    icon: '/assets/logo.svg'
-  }
+    icon: "/assets/logo.svg",
+  },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -45,7 +47,9 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <TooltipProvider>
-                <main className="flex-1">{children}</main>
+                <UserProvider>
+                  <main className="flex-1">{children}</main>
+                </UserProvider>
               </TooltipProvider>
               <Toaster richColors />
             </ThemeProvider>

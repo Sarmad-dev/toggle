@@ -1,9 +1,10 @@
+"use client"
 import { TimeEntryList } from "@/components/dashboard/time-entry-list";
-
-// export const dynamic = 'force-dynamic';
+import { useUserContext } from "@/context/UserContext";
 
 export default function DashboardPage() {
-  
+  useUserContext()
+
   return (
     <div className="space-y-4">
       <div className="space-y-4">
@@ -13,7 +14,8 @@ export default function DashboardPage() {
             Here&apos;s a list of your recent time entries
           </p>
         </div>
-        <TimeEntryList />
+
+          <TimeEntryList />
       </div>
     </div>
   );
