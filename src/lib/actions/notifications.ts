@@ -28,7 +28,6 @@ export async function createNotification(data: {
 
     return notification;
   } catch (error) {
-    console.error("Failed to create notification:", error);
     throw error;
   }
 }
