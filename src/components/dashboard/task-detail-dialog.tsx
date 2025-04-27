@@ -23,7 +23,6 @@ import { useUpdateTask } from "@/hooks/task/use-update-task";
 import CustomInput from "../custom/custom-input";
 import { useUser } from "@/hooks/use-user";
 import { useSendTaskMessage } from "@/hooks/task/use-send-task-message";
-import { useMutationState } from "@tanstack/react-query";
 
 interface TaskDetailDialogProps {
   open: boolean;
@@ -68,10 +67,10 @@ export function TaskDetailDialog({
     setLocalChat(chat);
   }, [chat]);
 
-  const varaibles = useMutationState({
-    filters: { mutationKey: ["send-task-message"], status: "pending" },
-    select: (mutation) => mutation.state.variables,
-  });
+  // const varaibles = useMutationState({
+  //   filters: { mutationKey: ["send-task-message"], status: "pending" },
+  //   select: (mutation) => mutation.state.variables,
+  // });
 
   const { mutateAsync: sendTaskMessage, isPending: isSendMessagePending } =
     useSendTaskMessage();

@@ -11,7 +11,6 @@ import { CSS } from "@dnd-kit/utilities";
 import { TaskWithTags } from "@/types/global";
 import { Card, CardContent } from "@/components/ui/card";
 import { GripVertical } from "lucide-react";
-import { useUser } from "@/hooks/use-user";
 import TaskDetail from "../TaskDetail";
 
 interface KanbanColumnProps {
