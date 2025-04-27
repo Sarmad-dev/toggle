@@ -21,9 +21,11 @@ export const useUpdateTask = () => {
       value: string | string[];
       userId: string[];
     }) => updatedTask(taskId, field, value, userId, user?.id as string),
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Task updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["project"] });
+      queryClient.invalidateQueries({
+        queryKey: ["tasks", data?.data?.projectId],
+      });
     },
     onError: () => {
       toast.error("Failed to update task");

@@ -2,13 +2,13 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
 import { ClientKanbanBoard } from "@/components/dashboard/client-kanban-board";
 import ProjectTasksCalendar from "@/components/dashboard/project-tasks-calendar";
-import { Task } from "@prisma/client";
 import React from "react";
+import { TaskWithTags } from "@/types/global";
 
 interface ProjectTasksTabsProps {
   projectId: string;
   projectOwnerId: string;
-  tasks: Task[];
+  tasks: TaskWithTags[];
 }
 
 export default function ProjectTasksTabs({
@@ -17,14 +17,15 @@ export default function ProjectTasksTabs({
   tasks,
 }: ProjectTasksTabsProps) {
   // Fix null -> undefined for description and dueDate
+  // Ensure tasks shape matches TaskWithTags (description: string|null, dueDate: Date|null)
   const fixedTasks = (tasks || []).map((task) => ({
     ...task,
-    description: task.description ?? undefined,
+    description: task.description ?? null,
     dueDate: task.dueDate
       ? typeof task.dueDate === "string"
-        ? task.dueDate
-        : task.dueDate.toISOString()
-      : undefined,
+        ? new Date(task.dueDate)
+        : task.dueDate
+      : null,
   }));
 
   return (

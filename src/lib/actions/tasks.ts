@@ -237,10 +237,49 @@ export const updatedTask = async (
   try {
     let task: TaskWithProject | null = null;
     if (value instanceof Array) {
+      const task = await prisma.task.findUnique({
+        where: {
+          id: taskId,
+        },
+        include: {
+          tags: true,
+        },
+      });
+
+      const tagsToRemoved = task?.tags.filter(
+        (tag) => !value.includes(tag.name)
+      );
+
+      if (tagsToRemoved) {
+        await Promise.all(
+          tagsToRemoved.map(async (tag) => {
+            await prisma.tag.update({
+              where: { id: tag.id },
+              data: {
+                tasks: {
+                  disconnect: { id: taskId },
+                },
+              },
+            });
+          })
+        );
+      }
+
       value.map(async (t) => {
         const existingTag = await prisma.tag.findFirst({
           where: { name: t },
+          include: {
+            tasks: {
+              include: {
+                tags: true,
+              },
+            },
+          },
         });
+
+        if (existingTag?.tasks.some((task) => task.id === taskId)) {
+          return null;
+        }
 
         if (existingTag) {
           await prisma.tag.update({

@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskList } from "@/components/dashboard/task-list";
 import { ProjectMembers } from "@/components/dashboard/members/project-members";
 import { ProjectChat } from "@/components/dashboard/chat/project-chat";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface ProjectTabsProps {
   project: {
@@ -33,6 +35,11 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
           Members ({project._count.members})
         </TabsTrigger>
         <TabsTrigger value="chat">Chat</TabsTrigger>
+        <Link href={`/dashboard/projects/${project.id}/tasks`}>
+          <Button variant="ghost" className="ml-auto">
+            Kanban Board
+          </Button>
+        </Link>
       </TabsList>
 
       <TabsContent value="tasks">

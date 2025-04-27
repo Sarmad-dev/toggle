@@ -10,14 +10,9 @@ import { useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { TaskWithTags } from "@/types/global";
 import { Card, CardContent } from "@/components/ui/card";
-import { TaskDetailDialog } from "./task-detail-dialog";
 import { GripVertical } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useProjectMembers } from "@/hooks/projects/use-project-members";
-import { useMutation } from "@tanstack/react-query";
-import { addMembersToTask } from "@/lib/actions/tasks";
-import { toast } from "sonner";
 import { useUser } from "@/hooks/use-user";
+import TaskDetail from "../TaskDetail";
 
 interface KanbanColumnProps {
   id: string;
@@ -27,24 +22,6 @@ interface KanbanColumnProps {
 }
 
 export function KanbanColumn({ id, label, tasks, canDrag }: KanbanColumnProps) {
-  const params = useParams();
-  const projectId = params.projectId;
-
-  const { user } = useUser();
-
-  const { mutateAsync, isPending } = useMutation({
-    mutationKey: ["add-task-members"],
-    mutationFn: ({ taskId, userId }: { taskId: string; userId: string[] }) =>
-      addMembersToTask({ taskId, userId }),
-    onSuccess: () => {
-      toast.success("Task assigned");
-    },
-    onError: (error) => {
-      toast.error("Something went wrong " + error.message);
-    },
-  });
-
-  const { projectMembers } = useProjectMembers(projectId as string);
   const [open, setOpen] = React.useState(false);
   const [selectedTask, setSelectedTask] = React.useState<TaskWithTags | null>(
     null
@@ -55,10 +32,6 @@ export function KanbanColumn({ id, label, tasks, canDrag }: KanbanColumnProps) {
   const handleCardClick = (task: TaskWithTags) => {
     setSelectedTask(task);
     setOpen(true);
-  };
-
-  const onAddMembers = async (taskId: string, userId: string[]) => {
-    await mutateAsync({ taskId, userId });
   };
 
   return (
@@ -87,30 +60,7 @@ export function KanbanColumn({ id, label, tasks, canDrag }: KanbanColumnProps) {
           </div>
         </SortableContext>
       </div>
-      <TaskDetailDialog
-        open={open}
-        onOpenChange={setOpen}
-        task={selectedTask}
-        isManager={
-          projectMembers?.data?.some((m) => m.role === "MANAGER") ||
-          projectMembers?.data?.some((m) => m.role === "LEADER") ||
-          projectMembers?.data?.some((m) => m.project.user?.id === user?.id) ||
-          false
-        }
-        currentMembers={selectedTask?.taskMembers.map((m) => m.user) || []}
-        allUsers={projectMembers?.data?.map((m) => m.user) || []}
-        activities={
-          selectedTask?.taskActivity?.map((act) => ({
-            id: act.id,
-            content: act.content,
-            createdAt: act.createdAt,
-            user: act.user,
-          })) || []
-        }
-        chat={selectedTask?.TaskMessages || []}
-        onAddMember={(taskId, userId) => onAddMembers(taskId, userId)}
-        isPending={isPending}
-      />
+      <TaskDetail open={open} setOpen={setOpen} selectedTask={selectedTask} />
     </>
   );
 }

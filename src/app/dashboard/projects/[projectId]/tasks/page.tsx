@@ -2,7 +2,7 @@ import { getProject } from "@/lib/actions/projects";
 import queryClient from "@/lib/tanstack/queryClient";
 import React from "react";
 import { getProjectTasks } from "@/lib/actions/tasks";
-import { Task } from "@prisma/client";
+import { TaskWithTags } from "@/types/global";
 import ProjectTasksTabs from "@/components/dashboard/project-tasks-tabs";
 
 type Props = {
@@ -20,13 +20,24 @@ const TasksPage = async ({ params }: Props) => {
     queryKey: ["tasks", projectId],
     queryFn: () => getProjectTasks(projectId),
   });
-  const tasks = tasksResult?.data || [];
+  const rawTasks = tasksResult?.data || [];
+
+  // Transform to TaskWithTags
+  const tasksWithTags: TaskWithTags[] = rawTasks.map((task) => ({
+    ...task,
+    taskMembers: task.TaskMembers,
+    taskActivity: task.TaskActivity,
+    TaskMessages: task.TaskMessages.map((msg) => ({
+      ...msg,
+      projectId,
+    })),
+  }));
 
   return (
     <ProjectTasksTabs
       projectId={projectId}
       projectOwnerId={project.data?.userId as string}
-      tasks={tasks as Task[]}
+      tasks={tasksWithTags}
     />
   );
 };

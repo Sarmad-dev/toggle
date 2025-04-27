@@ -43,7 +43,10 @@ export function ClientKanbanBoard({
       ...task,
       taskMembers: task.TaskMembers,
       taskActivity: task.TaskActivity,
-      taskMessage: task.TaskMessages,
+      TaskMessages: task.TaskMessages.map((msg) => ({
+        ...msg,
+        projectId,
+      })),
     })) || [];
 
   return <KanbanBoard tasks={tasks} projectOwnerId={projectOwnerId} />;

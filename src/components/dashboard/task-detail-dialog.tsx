@@ -68,8 +68,6 @@ export function TaskDetailDialog({
     setLocalChat(chat);
   }, [chat]);
 
-  console.log("CHAT: ", localChat);
-
   const varaibles = useMutationState({
     filters: { mutationKey: ["send-task-message"], status: "pending" },
     select: (mutation) => mutation.state.variables,
@@ -81,8 +79,6 @@ export function TaskDetailDialog({
   const { mutateAsync: updateTask, isPending: isUpdatePending } =
     useUpdateTask();
   if (!task) return null;
-
-  console.log("VARIABLES: ", varaibles);
 
   // Inline edit logic
   const startEdit = (field: string, value: string | string[]) => {
@@ -294,7 +290,7 @@ export function TaskDetailDialog({
               <div className="flex gap-2 mt-2">
                 <Input
                   value={
-                    Array.isArray(editValue) ? editValue.join(", ") : editValue
+                    Array.isArray(editValue) ? editValue.join(",") : editValue
                   }
                   onChange={(e) => {
                     setEditValue(

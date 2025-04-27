@@ -6,6 +6,7 @@ import { ModeToggle } from "@/components/theme-switcher";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import Image from "next/image";
 
 const navigation = [
   { name: "Features", href: "#features" },
@@ -38,13 +39,13 @@ export function SiteHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xl">T</span>
-              </div>
-              <span className="font-bold text-xl hidden sm:inline-block">
-                TimeTrack
-              </span>
+            <Link href="/">
+              <Image
+                src="/assets/logo.svg"
+                alt="logo"
+                width={180}
+                height={32}
+              />
             </Link>
           </div>
 
@@ -133,4 +134,4 @@ export function SiteHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
       </nav>
     </header>
   );
-} 
+}
