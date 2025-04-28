@@ -2,7 +2,7 @@ import { prisma } from "./prisma";
 
 export const SUBSCRIPTION_LIMITS = {
   FREE: {
-    maxProjects: 10,
+    maxProjects: 2,
     maxMembersPerProject: 5,
     maxTasksPerProject: 5,
   },

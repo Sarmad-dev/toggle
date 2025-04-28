@@ -38,8 +38,6 @@ export async function POST(req: Request) {
           where: { id: meta.custom_data.userId },
           data: {
             plan: "PRO",
-            lemonSqueezyCustomerId: data.attributes.customer_id.toString(),
-            lemonSqueezySubscriptionId: data.id.toString(),
           },
         });
 
@@ -53,6 +51,8 @@ export async function POST(req: Request) {
                 ? new Date(data.attributes.ends_at)
                 : undefined,
             lemonSqueezyId: data.id.toString(),
+            lemonSqueezyCustomerId: data.attributes.customer_id.toString(),
+            lemonSqueezySubscriptionId: data.id.toString(),
           },
         });
         console.log("✅ User updated successfully");
@@ -63,8 +63,13 @@ export async function POST(req: Request) {
       case "subscription_expired":
         console.log("👤 Updating user:", meta.custom_data.userId);
         const user = await prisma.user.findUnique({
-          where: { lemonSqueezySubscriptionId: data.id },
+          where: {
+            plan: "PRO",
+            id: meta.custom_data.userId,
+            subscription: { lemonSqueezySubscriptionId: data.id.toString() },
+          },
         });
+
         if (!user) {
           console.log("No user found with subscription ID:", data.id);
           break;
@@ -74,8 +79,14 @@ export async function POST(req: Request) {
           where: { id: user.id },
           data: {
             plan: "FREE",
-            lemonSqueezySubscriptionId:
-              meta.event_name === "subscription_cancelled" ? null : undefined,
+            subscription: {
+              update: {
+                lemonSqueezySubscriptionId:
+                  meta.event_name === "subscription_cancelled"
+                    ? null
+                    : undefined,
+              },
+            },
           },
         });
 

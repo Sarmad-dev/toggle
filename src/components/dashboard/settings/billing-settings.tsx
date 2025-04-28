@@ -35,8 +35,6 @@ export function BillingSettings() {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
-  console.log("USER: ", user);
-
   const handleUpgrade = async () => {
     setIsLoading(true);
     try {
@@ -48,6 +46,8 @@ export function BillingSettings() {
       if (!checkoutUrl) {
         throw new Error("No checkout URL received");
       }
+
+      console.log("URL: ", checkoutUrl);
 
       if (!isScriptLoaded) {
         window.location.href = checkoutUrl;

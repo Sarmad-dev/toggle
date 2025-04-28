@@ -43,11 +43,11 @@ export function KanbanColumn({ id, label, tasks, canDrag }: KanbanColumnProps) {
       >
         <div className="font-bold text-lg mb-3 text-center">{label}</div>
         <SortableContext
-          items={tasks.map((t, i) => `${id}:${i}`)}
+          items={tasks?.map((t, i) => `${id}:${i}`)}
           strategy={verticalListSortingStrategy}
         >
           <div className="flex flex-col gap-3 min-h-[60px]">
-            {tasks.map((task, idx) => (
+            {tasks?.map((task, idx) => (
               <KanbanTaskCard
                 key={task.id}
                 id={`${id}:${idx}`}

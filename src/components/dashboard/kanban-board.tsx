@@ -16,12 +16,12 @@ import { useUser } from "@/hooks/use-user";
 import { updateTaskStatus } from "@/lib/actions/tasks";
 import { toast } from "sonner";
 
-const COLUMN_ORDER = ["DRAFT", "TODO", "IN_PROGRESS", "DONE"];
+const COLUMN_ORDER = ["DRAFT", "TODO", "IN_PROGRESS", "COMPLETED"];
 const COLUMN_LABELS: Record<string, string> = {
   DRAFT: "Draft",
   TODO: "Todo",
   IN_PROGRESS: "In Progress",
-  DONE: "Done",
+  COMPLETED: "Completed",
 };
 
 interface KanbanBoardProps {
@@ -36,7 +36,7 @@ export function KanbanBoard({ tasks, projectOwnerId }: KanbanBoardProps) {
       DRAFT: [],
       TODO: [],
       IN_PROGRESS: [],
-      DONE: [],
+      COMPLETED: [],
     };
     tasks.forEach((task) => {
       grouped[task.status]?.push(task);
@@ -103,7 +103,7 @@ export function KanbanBoard({ tasks, projectOwnerId }: KanbanBoardProps) {
       onDragEnd={handleDragEnd}
     >
       <div className="flex gap-4 overflow-x-auto min-h-[400px]">
-        {COLUMN_ORDER.map((col) => (
+        {COLUMN_ORDER?.map((col) => (
           <KanbanColumn
             key={col}
             id={col}

@@ -3,12 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
 const LEMON_SQUEEZY_API_KEY = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_API_KEY;
-const LEMON_SQUEEZY_API_URL = 'https://api.lemonsqueezy.com/v1';
+const LEMON_SQUEEZY_API_URL = "https://api.lemonsqueezy.com/v1";
 
 export async function POST() {
   try {
     const supabaseServer = await createClient();
-    const { data: { user: supabaseUser } } = await supabaseServer.auth.getUser();
+    const {
+      data: { user: supabaseUser },
+    } = await supabaseServer.auth.getUser();
 
     if (!supabaseUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -16,20 +18,23 @@ export async function POST() {
 
     const user = await prisma.user.findUnique({
       where: { email: supabaseUser.email },
-      select: { id: true, lemonSqueezySubscriptionId: true }
+      select: { id: true, subscription: true },
     });
 
-    if (!user?.lemonSqueezySubscriptionId) {
-      return NextResponse.json({ error: "No subscription found" }, { status: 404 });
+    if (!user?.subscription?.lemonSqueezySubscriptionId) {
+      return NextResponse.json(
+        { error: "No subscription found" },
+        { status: 404 }
+      );
     }
 
     const response = await fetch(
-      `${LEMON_SQUEEZY_API_URL}/subscriptions/${user.lemonSqueezySubscriptionId}`,
+      `${LEMON_SQUEEZY_API_URL}/subscriptions/${user.subscription.lemonSqueezySubscriptionId}`,
       {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${LEMON_SQUEEZY_API_KEY}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${LEMON_SQUEEZY_API_KEY}`,
+          "Content-Type": "application/json",
         },
       }
     );
@@ -50,4 +55,4 @@ export async function POST() {
       { status: 500 }
     );
   }
-} 
+}
