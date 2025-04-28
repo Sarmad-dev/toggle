@@ -54,7 +54,7 @@ export function BillingSettings() {
         return;
       }
 
-      window.LemonSqueezy.Url.Open(checkoutUrl);
+      window.location.href = checkoutUrl;
     } catch (error) {
       console.error("Upgrade error:", error);
       toast.error(

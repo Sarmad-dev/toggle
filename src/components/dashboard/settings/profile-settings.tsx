@@ -19,7 +19,7 @@ import { useUser } from "@/hooks/use-user";
 import { uploadFile } from "@/lib/storage";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { updateUser } from "@/lib/actions/user";
 import {
   getManagerProjects,
@@ -27,6 +27,7 @@ import {
 } from "@/lib/actions/projects";
 import { getTeamMemberships } from "@/lib/actions/teams";
 import SettingsLoader from "@/components/loaders/settings-loader";
+import CustomInput from "@/components/custom/custom-input";
 
 const formSchema = z.object({
   username: z.string().min(2, "Username must be at least 2 characters"),
@@ -49,7 +50,7 @@ export function ProfileSettings() {
 
   const { data: teamsData } = useQuery({
     queryKey: ["user-teams"],
-    queryFn: async () => await getTeamMemberships()
+    queryFn: async () => await getTeamMemberships(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -60,22 +61,24 @@ export function ProfileSettings() {
     },
   });
 
-  // useEffect(() => {
-  //   if (user) {
-  //     form.reset({
-  //       username: user.username,
-  //       name: user.name as string,
-  //     });
-  //     setPreview(user.image || "");
-  //   }
-  // }, [user, form]);
+  useEffect(() => {
+    if (user) {
+      form.setValue("username", user.username || "");
+      form.setValue("name", user.name || "");
+      setPreview(user.image || "");
+    }
+  }, [user, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       let imageUrl = user?.image || "";
 
       if (selectedFile) {
-        const fileData = await uploadFile(selectedFile, "avatars");
+        const fileData = await uploadFile(
+          selectedFile,
+          "avatars",
+          "organizations-logo"
+        );
         imageUrl = fileData?.url || "";
       }
 
@@ -123,7 +126,9 @@ export function ProfileSettings() {
         </div>
         <div className="border p-4 rounded-lg">
           <h3 className="text-sm font-medium">Project Memberships</h3>
-          <p className="text-2xl font-bold">{membershipsData?.data?.length || 0}</p>
+          <p className="text-2xl font-bold">
+            {membershipsData?.data?.length || 0}
+          </p>
         </div>
         <div className="border p-4 rounded-lg">
           <h3 className="text-sm font-medium">Team Memberships</h3>
@@ -139,7 +144,7 @@ export function ProfileSettings() {
               <AvatarFallback>{user?.username?.[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <input
+              <Input
                 type="file"
                 id="avatar-upload"
                 className="hidden"
@@ -165,7 +170,7 @@ export function ProfileSettings() {
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <CustomInput {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -179,7 +184,7 @@ export function ProfileSettings() {
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <CustomInput {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
